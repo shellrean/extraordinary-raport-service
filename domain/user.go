@@ -15,9 +15,18 @@ type User struct {
     UpdatedAt   time.Time   `json:"updated_at"`
 }
 
+/**
+ * DTOUserLoginRequest
+ * for store user request payload
+ */
+type DTOUserLoginRequest struct {
+	Email		string 		`json:"email" validate:"required"`
+	Password	string		`json:"password" validate:"required"`
+}
+
 // UserUsecase represent the user's usecase
 type UserUsecase interface {
-    
+    Authentication(ctx context.Context, ur DTOUserLoginRequest, key string) (token string, err error)
 }
 
 // UserRepository represent the user's repository
