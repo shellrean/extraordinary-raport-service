@@ -5,6 +5,7 @@ import (
     "time"
 
     "github.com/shellrean/extraordinary-raport/domain"
+    "github.com/shellrean/extraordinary-raport/entities/helper"
 )
 
 type userUsecase struct {
@@ -31,6 +32,24 @@ func (u *userUsecase) Fetch(c context.Context, num int64) (res []domain.User, er
     if err != nil {
         return nil, err
     }
+
+    return
+}
+
+func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRequest, key string) (token string, err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    user, err := u.userRepo.GetByEmail(ctx, ur.Email)
+    if err != nil {
+        return
+    }
+
+    if user == (domain.User{}) {
+        return token, domain.ErrNotFound
+    }
+
+    token, err = helper.CreateToken(key, user)
 
     return
 }
