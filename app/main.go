@@ -25,6 +25,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
+    cfg.JWTKey = "secret"
 
     dsn := fmt.Sprintf(
         "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s",
@@ -58,7 +59,7 @@ func main() {
     
     r := gin.Default()
 
-    httpHandler.NewUserHandler(r, userUsecase)
+    httpHandler.NewUserHandler(r, userUsecase, cfg)
     
     // Let's run our server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
