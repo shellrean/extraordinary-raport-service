@@ -42,4 +42,6 @@ type Config struct {
     } `yaml:"context"`
 
     Release bool `yaml:"release"`
+
+    JWTKey  string
 }
