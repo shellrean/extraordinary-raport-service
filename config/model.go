@@ -34,6 +34,7 @@ type Config struct {
         DBName      string  `yaml:"dbname"`
         Host        string  `yaml:"host"`
         Port        string  `yaml:"port"`
+        Timezone    string  `yaml:"timezone"`
     } `yaml:"database"`
 
     Context struct {
