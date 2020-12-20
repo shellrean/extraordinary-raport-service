@@ -29,6 +29,7 @@ database:
   dbname: ""
   host: "localhost"
   port: "5432"
+  timezone: "Asia/Jakarta"
 # Context config
 context:
   timeout: 2
