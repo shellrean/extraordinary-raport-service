@@ -27,8 +27,8 @@ func main() {
     }
 
     dsn := fmt.Sprintf(
-        "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-        cfg.Database.Host, cfg.Database.Username, cfg.Database.Password, cfg.Database.DBName, cfg.Database.Port,
+        "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s",
+        cfg.Database.Host, cfg.Database.Username, cfg.Database.Password, cfg.Database.DBName, cfg.Database.Port, cfg.Database.Timezone,
     )
 
     db, err := sql.Open("postgres", dsn)
