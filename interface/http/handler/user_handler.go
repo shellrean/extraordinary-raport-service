@@ -66,11 +66,11 @@ func (h *UserHandler) Autheticate(c *gin.Context) {
         return
     }
 
-    token, err := h.userUsecase.Authentication(c, u, h.config.JWTKey)
+    res, err := h.userUsecase.Authentication(c, u, h.config.JWTKey)
     if err != nil {
         c.JSON(helper.GetStatusCode(err), ErrorResponse{err.Error()})
         return
     }
     
-    c.JSON(http.StatusOK, gin.H{"token": token})
+    c.JSON(http.StatusOK, res)
 }
