@@ -2,11 +2,20 @@ package helper
 
 import (
 	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/twinj/uuid"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 )
+
+func GenerateTokenDetail(td *domain.TokenDetails) {
+	td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
+    td.RtExpires = time.Now().Add(time.Hour * 24 * 7).Unix()
+    td.AccessUuid = uuid.NewV4().String()
+    td.RefreshUuid = uuid.NewV4().String()
+}
 
 func CreateAccessToken(key string, user domain.User, td *domain.TokenDetails) (err error) {
 	atClaims := jwt.MapClaims{}
