@@ -5,6 +5,7 @@ import (
     "time"
 
     "golang.org/x/crypto/bcrypt"
+    "github.com/twinj/uuid"
 
     "github.com/shellrean/extraordinary-raport/domain"
     "github.com/shellrean/extraordinary-raport/entities/helper"
@@ -38,7 +39,7 @@ func (u *userUsecase) Fetch(c context.Context, num int64) (res []domain.User, er
     return
 }
 
-func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRequest, key string) (token string, err error) {
+func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRequest, key string) (t domain.DTOTokenResponse, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -48,15 +49,34 @@ func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRe
     }
 
     if user == (domain.User{}) {
-        return token, domain.ErrInvalidUser
+        return domain.DTOTokenResponse{}, domain.ErrInvalidUser
     }
 
     err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(ur.Password))
     if err != nil {
-        return token, domain.ErrInvalidUser
+        return domain.DTOTokenResponse{}, domain.ErrInvalidUser
     }
 
-    token, err = helper.CreateToken(key, user)
+    td := &domain.TokenDetails{}
+    td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
+    td.RtExpires = time.Now().Add(time.Hour * 24 * 7).Unix()
+    td.AccessUuid = uuid.NewV4().String()
+    td.RefreshUuid = uuid.NewV4().String()
+
+    err = helper.CreateAccessToken(key, user, td)
+    if err != nil {
+        return domain.DTOTokenResponse{}, err
+    }
+    
+    err = helper.CreateRefreshToken(key, user, td)
+    if err != nil {
+        return domain.DTOTokenResponse{}, err
+    }
+
+    t = domain.DTOTokenResponse{
+        AccessToken:    td.AccessToken,
+        RefreshToken:   td.RefreshToken,
+    }
 
     return
 }
