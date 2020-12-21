@@ -48,6 +48,15 @@ type Config struct {
         Timezone    string  `yaml:"timezone"`
     } `yaml:"database"`
 
+    Redis struct {
+        // Enable will use redis as cache
+        Enable      bool    `yaml:"enable"`
+        Host        string  `yaml:"host"`
+        Port        string  `yaml:"port"`
+        Password    string  `yaml:"password"`
+        DBName      int  `yaml:"dbname"`
+    } `yaml:"redis"`
+
     Context struct {
         Timeout     int     `yaml:"timeout"`
     } `yaml:"context"`
