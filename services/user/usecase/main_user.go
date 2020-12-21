@@ -4,6 +4,8 @@ import (
     "context"
     "time"
 
+    "golang.org/x/crypto/bcrypt"
+
     "github.com/shellrean/extraordinary-raport/domain"
     "github.com/shellrean/extraordinary-raport/entities/helper"
 )
@@ -46,7 +48,12 @@ func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRe
     }
 
     if user == (domain.User{}) {
-        return token, domain.ErrNotFound
+        return token, domain.ErrInvalidUser
+    }
+
+    err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(ur.Password))
+    if err != nil {
+        return token, domain.ErrInvalidUser
     }
 
     token, err = helper.CreateToken(key, user)
