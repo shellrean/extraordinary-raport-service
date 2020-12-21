@@ -14,6 +14,8 @@ func GetStatusCode(err error) int {
 	switch err {
 	case domain.ErrNotFound:
 		return http.StatusNotFound
+	case domain.ErrInvalidUser:
+		return http.StatusNotFound
 	default:
 		return http.StatusInternalServerError
 	}
