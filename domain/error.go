@@ -7,4 +7,5 @@ var (
 	ErrInvalidUser = errors.New("invalid user")
 	ErrUnauthorized = errors.New("unauthorized user")
 	ErrInvalidToken = errors.New("invalid token")
+	ErrServerError = errors.New("unexplained happend in server")
 )
