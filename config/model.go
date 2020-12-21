@@ -29,11 +29,22 @@ type Config struct {
     } `yaml:"server"`
 
     Database struct {
+        // Username is the database machine user
         Username    string  `yaml:"username"`
+
+        // Password is the database machine password
         Password    string  `yaml:"password"`
+
+        // DBName is the database name
         DBName      string  `yaml:"dbname"`
+
+        // Host is local machine IP Address to bind the database
         Host        string  `yaml:"host"`
+
+        // Port is local machie TCP Port to bind the database
         Port        string  `yaml:"port"`
+        
+        // Timezone is the your timezone's database
         Timezone    string  `yaml:"timezone"`
     } `yaml:"database"`
 
@@ -43,7 +54,7 @@ type Config struct {
 
     Release bool `yaml:"release"`
 
-    JWTKey  string
+    JWTAccessKey  string
 
     JWTRefreshKey string
 }
