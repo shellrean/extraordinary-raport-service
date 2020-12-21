@@ -44,4 +44,6 @@ type Config struct {
     Release bool `yaml:"release"`
 
     JWTKey  string
+
+    JWTRefreshKey string
 }
