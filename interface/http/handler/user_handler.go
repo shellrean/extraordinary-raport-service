@@ -2,7 +2,7 @@ package handler
 
 import (
     "net/http"
-    "fmt"
+    "strings"
 
     "github.com/gin-gonic/gin"
     "github.com/go-playground/validator/v10"
@@ -19,6 +19,11 @@ type UserHandler struct {
 
 type ErrorResponse struct {
     Message     string  `json:"message"`
+}
+
+type ErrorValidation struct {
+    Field       string  `json:"field"`
+    Message      string `json:"message"`
 }
 
 func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config) {
@@ -43,15 +48,22 @@ func (h *UserHandler) Autheticate(c *gin.Context) {
 
     validate := validator.New()
     if err := validate.Struct(u); err != nil {
-        var reserr []string
+        var reserr []ErrorValidation
 
         errs := err.(validator.ValidationErrors)
 
 		for _, e := range errs {
-            res := fmt.Sprintf("%s error on tag %s",e.Field(), e.Tag())
+            msg := helper.GetErrorMessage(e)
+            
+            res := ErrorValidation{
+                Field:      strings.ToLower(e.Field()),
+                Message:    msg,
+            }
+
             reserr = append(reserr, res)
         }
-        c.JSON(http.StatusBadRequest, gin.H{"errors": reserr})
+        c.JSON(http.StatusBadRequest, gin.H{"message": "validation error","errors": reserr})
+        return
     }
 
     token, err := h.userUsecase.Authentication(c, u, h.config.JWTKey)
