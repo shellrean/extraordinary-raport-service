@@ -70,7 +70,7 @@ func (m *postgresUserRepository) GetByEmail(ctx context.Context, email string) (
         return domain.User{}, err
     }
 
-    if len(list) > 1 {
+    if len(list) < 1 {
         return domain.User{}, nil
     }
 
