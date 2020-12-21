@@ -10,11 +10,13 @@ import (
     "github.com/shellrean/extraordinary-raport/config"
     "github.com/shellrean/extraordinary-raport/domain"
     "github.com/shellrean/extraordinary-raport/entities/helper"
+    "github.com/shellrean/extraordinary-raport/interface/http/middleware"
 )
 
 type UserHandler struct {
     userUsecase     domain.UserUsecase
     config          *config.Config
+    mddl            *middleware.GoMiddleware
 }
 
 type ErrorResponse struct {
@@ -23,26 +25,28 @@ type ErrorResponse struct {
 
 type ErrorValidation struct {
     Field       string  `json:"field"`
-    Message      string `json:"message"`
+    Message     string `json:"message"`
 }
 
-func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config) {
+func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
     handler := &UserHandler{
         userUsecase:    m,
         config:         cfg,
+        mddl:           mddl,
     }
-    r.GET("/users", handler.FetchUsers)
+    r.GET("/users", handler.mddl.Auth(), handler.FetchUsers)
     r.POST("/auth", handler.Autheticate)
 }
 
 func (h *UserHandler) FetchUsers(c *gin.Context) {
-    c.JSON(http.StatusOK, gin.H{"user": "okeeee", "status": "no value"}) 
+    data := c.GetStringMap("user-meta")
+    c.JSON(http.StatusOK, gin.H{"data": data}) 
 }
 
 func (h *UserHandler) Autheticate(c *gin.Context) {
     var u domain.DTOUserLoginRequest
     if err := c.ShouldBindJSON(&u); err != nil {
-        c.JSON(http.StatusUnprocessableEntity, ErrorResponse{"Invalid json provided"})
+        c.JSON(http.StatusUnprocessableEntity, ErrorResponse{"invalid json provided"})
         return
     }
 
@@ -66,7 +70,7 @@ func (h *UserHandler) Autheticate(c *gin.Context) {
         return
     }
 
-    res, err := h.userUsecase.Authentication(c, u, h.config.JWTKey)
+    res, err := h.userUsecase.Authentication(c, u)
     if err != nil {
         c.JSON(helper.GetStatusCode(err), ErrorResponse{err.Error()})
         return
