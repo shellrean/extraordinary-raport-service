@@ -26,7 +26,7 @@ type DTOUserLoginRequest struct {
 
 // UserUsecase represent the user's usecase
 type UserUsecase interface {
-    Authentication(ctx context.Context, ur DTOUserLoginRequest, key string) (token string, err error)
+    Authentication(ctx context.Context, ur DTOUserLoginRequest, key string) (t DTOTokenResponse, err error)
 }
 
 // UserRepository represent the user's repository
