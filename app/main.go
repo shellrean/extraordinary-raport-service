@@ -12,6 +12,7 @@ import (
     "github.com/shellrean/extraordinary-raport/config"
     _userRepo "github.com/shellrean/extraordinary-raport/services/user/repository/postgres"
     _userUsecase "github.com/shellrean/extraordinary-raport/services/user/usecase"
+    _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     httpHandler "github.com/shellrean/extraordinary-raport/interface/http/handler"
 )
 
@@ -25,7 +26,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    cfg.JWTKey = "secret"
+    cfg.JWTAccessKey = "secret"
     cfg.JWTRefreshKey = "refreshsecret"
 
     dsn := fmt.Sprintf(
@@ -52,7 +53,7 @@ func main() {
     timeoutContext := time.Duration(cfg.Context.Timeout) * time.Second
 
     userRepo := _userRepo.NewPostgresUserRepository(db)
-    userUsecase := _userUsecase.NewUserUsecase(userRepo, timeoutContext)
+    userUsecase := _userUsecase.NewUserUsecase(userRepo, timeoutContext, cfg)
 
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
@@ -60,9 +61,11 @@ func main() {
     
     r := gin.Default()
 
-    httpHandler.NewUserHandler(r, userUsecase, cfg)
+    mddl := _middleware.InitMiddleware(cfg)
+
+    httpHandler.NewUserHandler(r, userUsecase, cfg, mddl)
     
-    // Let's run our server
+    // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
     err = r.Run(fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port))
     if err != nil {
