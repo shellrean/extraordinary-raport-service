@@ -20,7 +20,7 @@ type User struct {
  * for store user request payload
  */
 type DTOUserLoginRequest struct {
-	Email		string 		`json:"email" validate:"required"`
+	Email		string 		`json:"email" validate:"required,email"`
 	Password	string		`json:"password" validate:"required"`
 }
 
