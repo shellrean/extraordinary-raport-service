@@ -5,12 +5,15 @@ import (
     "fmt"
     "database/sql"
     "time"
+    "context"
 
     _ "github.com/lib/pq"
     "github.com/gin-gonic/gin"
+    "github.com/go-redis/redis/v8"
 
     "github.com/shellrean/extraordinary-raport/config"
     _userRepo "github.com/shellrean/extraordinary-raport/services/user/repository/postgres"
+    _userCacheRepo "github.com/shellrean/extraordinary-raport/services/user/repository/redis"
     _userUsecase "github.com/shellrean/extraordinary-raport/services/user/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     httpHandler "github.com/shellrean/extraordinary-raport/interface/http/handler"
@@ -49,11 +52,26 @@ func main() {
             log.Fatal(err)
         }
     }()
+        
+    redisDsn := fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.Port)
+    redis := redis.NewClient(&redis.Options{
+        Addr: redisDsn,
+        Password: cfg.Redis.Password,
+        DB: cfg.Redis.DBName,
+    })
+
+    if cfg.Redis.Enable {
+        _, err = redis.Ping(context.TODO()).Result()
+        if err != nil {
+            log.Fatal(err)
+        }
+    }
 
     timeoutContext := time.Duration(cfg.Context.Timeout) * time.Second
 
     userRepo := _userRepo.NewPostgresUserRepository(db)
-    userUsecase := _userUsecase.NewUserUsecase(userRepo, timeoutContext, cfg)
+    userCacheRepo := _userCacheRepo.NewRedisUserRepository(redis)
+    userUsecase := _userUsecase.NewUserUsecase(userRepo, userCacheRepo, timeoutContext, cfg)
 
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
