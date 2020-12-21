@@ -30,6 +30,13 @@ database:
   host: "localhost"
   port: "5432"
   timezone: "Asia/Jakarta"
+# Cache config
+redis:
+  enable: false
+  password: ""
+  dbname: 0
+  host: "localhost"
+  port: "6379"
 # Context config
 context:
   timeout: 2
