@@ -8,18 +8,21 @@ import (
     "github.com/twinj/uuid"
 
     "github.com/shellrean/extraordinary-raport/domain"
+    "github.com/shellrean/extraordinary-raport/config"
     "github.com/shellrean/extraordinary-raport/entities/helper"
 )
 
 type userUsecase struct {
     userRepo        domain.UserRepository
     contextTimeout  time.Duration
+    cfg             *config.Config
 }
 
-func NewUserUsecase(d domain.UserRepository, timeout time.Duration) domain.UserUsecase {
+func NewUserUsecase(d domain.UserRepository, timeout time.Duration, cfg *config.Config) domain.UserUsecase {
     return &userUsecase {
         userRepo:       d,
         contextTimeout: timeout,
+        cfg:            cfg,
     }
 }
 
@@ -39,7 +42,7 @@ func (u *userUsecase) Fetch(c context.Context, num int64) (res []domain.User, er
     return
 }
 
-func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRequest, key string) (t domain.DTOTokenResponse, err error) {
+func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRequest) (t domain.DTOTokenResponse, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -63,12 +66,12 @@ func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRe
     td.AccessUuid = uuid.NewV4().String()
     td.RefreshUuid = uuid.NewV4().String()
 
-    err = helper.CreateAccessToken(key, user, td)
+    err = helper.CreateAccessToken(u.cfg.JWTAccessKey, user, td)
     if err != nil {
         return domain.DTOTokenResponse{}, err
     }
     
-    err = helper.CreateRefreshToken(key, user, td)
+    err = helper.CreateRefreshToken(u.cfg.JWTRefreshKey, user, td)
     if err != nil {
         return domain.DTOTokenResponse{}, err
     }
