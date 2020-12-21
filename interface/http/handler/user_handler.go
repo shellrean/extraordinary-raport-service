@@ -36,6 +36,7 @@ func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mdd
     }
     r.GET("/users", handler.mddl.Auth(), handler.FetchUsers)
     r.POST("/auth", handler.Autheticate)
+    r.POST("/refresh-token", handler.RefreshToken)
 }
 
 func (h *UserHandler) FetchUsers(c *gin.Context) {
@@ -71,6 +72,22 @@ func (h *UserHandler) Autheticate(c *gin.Context) {
     }
 
     res, err := h.userUsecase.Authentication(c, u)
+    if err != nil {
+        c.JSON(helper.GetStatusCode(err), ErrorResponse{err.Error()})
+        return
+    }
+    
+    c.JSON(http.StatusOK, res)
+}
+
+func (h *UserHandler) RefreshToken(c *gin.Context) {
+    var u domain.DTOTokenResponse
+    if err := c.ShouldBindJSON(&u); err != nil {
+        c.JSON(http.StatusUnprocessableEntity, ErrorResponse{"invalid json provided"})
+        return
+    }
+
+    res, err := h.userUsecase.RefreshToken(c, u)
     if err != nil {
         c.JSON(helper.GetStatusCode(err), ErrorResponse{err.Error()})
         return
