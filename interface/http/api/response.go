@@ -21,6 +21,7 @@ var errorCodeToResponseCode = map[error]int {
 	domain.ErrInvalidLocale: 	http.StatusBadRequest,
 	domain.ErrInvalidTimezone: 	http.StatusBadRequest,
 	domain.ErrTooManyRequest: 	http.StatusTooManyRequests,
+	domain.ErrBadParamInput:	http.StatusBadRequest,
 	domain.ErrUnauthorized: 	http.StatusUnauthorized,
 	domain.ErrNoAuthorized: 	http.StatusForbidden,
 	domain.ErrUnprocess: 		http.StatusUnprocessableEntity,
