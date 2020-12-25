@@ -27,7 +27,7 @@ func CreateAccessToken(key string, user domain.User, td *domain.TokenDetails) (e
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	td.AccessToken, err = at.SignedString([]byte(key))
 	if err != nil {
-		return
+		return domain.ErrSessDecode
 	}
 	return
 }
@@ -41,7 +41,7 @@ func CreateRefreshToken(key string, user domain.User, td *domain.TokenDetails) (
 	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
 	td.RefreshToken, err = rt.SignedString([]byte(key))
 	if err != nil {
-		return
+		return domain.ErrSessDecode
 	}
 	return
 }
@@ -58,19 +58,19 @@ func ExtractToken(bearer string) (res string) {
 func VerifyToken(key string, tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, domain.ErrUnauthorized
+			return nil, domain.ErrSessDecode
 		}
 		return []byte(key), nil
 	})
 	if err != nil {
-		return nil, domain.ErrUnauthorized
+		return nil, domain.ErrSessVerifation
 	}
 	return token, nil
 }
 
 func TokenValid(token *jwt.Token) error {
 	if _, ok := token.Claims.(jwt.Claims); !ok || !token.Valid {
-		return domain.ErrInvalidToken
+		return domain.ErrSessInvalid
 	}
 	return nil
 }
