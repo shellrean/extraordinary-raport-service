@@ -27,17 +27,39 @@ func NewUserUsecase(d domain.UserRepository, dc domain.UserCacheRepository, time
     }
 }
 
-func (u *userUsecase) Fetch(c context.Context, num int64) (res []domain.User, err error) {
+func (u *userUsecase) Fetch(c context.Context, cursor string, num int64) (result []domain.DTOUserShow, nextCursor string, err error) {
     if num == 0 {
-        num = 10
+        num = int64(10)
     }
 
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
-    res, err = u.userRepo.Fetch(ctx, num)
+    decodedCursor, err := helper.DecodeCursor(cursor)
+    if err != nil && cursor != "" {
+        err = domain.ErrBadParamInput
+        return
+    }
+
+    var res []domain.User
+    res, err = u.userRepo.Fetch(ctx, decodedCursor, num)
     if err != nil {
-        return nil, err
+        return
+    }
+
+    for _, item := range res {
+        user := domain.DTOUserShow{
+            ID:     item.ID,
+            Name:   item.Name,
+            Email:  item.Email,
+            CreatedAt: item.CreatedAt,
+            UpdatedAt: item.UpdatedAt,
+        }
+        result = append(result, user)
+    }
+
+    if len(result) == int(num) {
+        nextCursor = helper.EncodeCursor(result[len(result)-1].ID)
     }
 
     return

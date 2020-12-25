@@ -3,6 +3,7 @@ package handler
 import (
     "net/http"
     "strings"
+    "strconv"
 
     "github.com/gin-gonic/gin"
     "github.com/go-playground/validator/v10"
@@ -32,8 +33,22 @@ func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mdd
 }
 
 func (h *UserHandler) FetchUsers(c *gin.Context) {
-    data := c.GetStringMap("user-meta")
-    c.JSON(http.StatusOK, gin.H{"data": data}) 
+    limS , _ := c.GetQuery("limit")
+    lim, _ := strconv.Atoi(limS)
+    cursor, _ := c.GetQuery("cursor")
+
+    res, nextCursor, err := h.userUsecase.Fetch(c, cursor, int64(lim))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    c.Header("X-Cursor", nextCursor)
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", res)) 
 }
 
 func (h *UserHandler) Autheticate(c *gin.Context) {
