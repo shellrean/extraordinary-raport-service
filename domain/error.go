@@ -26,6 +26,9 @@ var (
 	// (1006) exceeded request per minute
 	ErrTooManyRequest = errors.New("You exceeded the limit of requests per minute, Please try again after sometime")
 	
+	// (1007) bad parameter input
+	ErrBadParamInput = errors.New("Bad parameter input")
+
 	// (1101) unauthorized
 	ErrUnauthorized = errors.New("Unauthorized")
 
@@ -86,6 +89,7 @@ var ErrorCode = map[error]int{
 	ErrInvalidLocale:	1004,
 	ErrInvalidTimezone:	1005,
 	ErrTooManyRequest:	1006,
+	ErrBadParamInput:	1007,
 	ErrUnauthorized:	1101,
 	ErrNoAuthorized:	1102,
 	ErrUnprocess:		1103,
