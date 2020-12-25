@@ -11,21 +11,13 @@ import (
     "github.com/shellrean/extraordinary-raport/domain"
     "github.com/shellrean/extraordinary-raport/entities/helper"
     "github.com/shellrean/extraordinary-raport/interface/http/middleware"
+    "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
 type UserHandler struct {
     userUsecase     domain.UserUsecase
     config          *config.Config
     mddl            *middleware.GoMiddleware
-}
-
-type ErrorResponse struct {
-    Message     string  `json:"message"`
-}
-
-type ErrorValidation struct {
-    Field       string  `json:"field"`
-    Message     string `json:"message"`
 }
 
 func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
@@ -47,51 +39,71 @@ func (h *UserHandler) FetchUsers(c *gin.Context) {
 func (h *UserHandler) Autheticate(c *gin.Context) {
     var u domain.DTOUserLoginRequest
     if err := c.ShouldBindJSON(&u); err != nil {
-        c.JSON(http.StatusUnprocessableEntity, ErrorResponse{"invalid json provided"})
+        error_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), error_code),
+        )
         return
     }
 
     validate := validator.New()
     if err := validate.Struct(u); err != nil {
-        var reserr []ErrorValidation
+        var reserr []api.ErrorValidation
 
         errs := err.(validator.ValidationErrors)
 
 		for _, e := range errs {
             msg := helper.GetErrorMessage(e)
             
-            res := ErrorValidation{
+            res := api.ErrorValidation{
                 Field:      strings.ToLower(e.Field()),
                 Message:    msg,
             }
 
             reserr = append(reserr, res)
         }
-        c.JSON(http.StatusBadRequest, gin.H{"message": "validation error","errors": reserr})
+        error_code := helper.GetErrorCode(domain.ErrValidation)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseErrorWithData(domain.ErrValidation.Error(), error_code, reserr),
+        )
         return
     }
 
     res, err := h.userUsecase.Authentication(c, u)
     if err != nil {
-        c.JSON(helper.GetStatusCode(err), ErrorResponse{err.Error()})
+        error_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), error_code),
+        )
         return
     }
     
-    c.JSON(http.StatusOK, res)
+    c.JSON(http.StatusOK, api.ResponseSuccess("success",res))
 }
 
 func (h *UserHandler) RefreshToken(c *gin.Context) {
     var u domain.DTOTokenResponse
     if err := c.ShouldBindJSON(&u); err != nil {
-        c.JSON(http.StatusUnprocessableEntity, ErrorResponse{"invalid json provided"})
+        error_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity, 
+            api.ResponseError(domain.ErrUnprocess.Error(), error_code),
+        )
         return
     }
 
     res, err := h.userUsecase.RefreshToken(c, u)
     if err != nil {
-        c.JSON(helper.GetStatusCode(err), ErrorResponse{err.Error()})
+        error_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err), 
+            api.ResponseError(err.Error(), error_code),
+        )
         return
     }
     
-    c.JSON(http.StatusOK, res)
+    c.JSON(http.StatusOK, api.ResponseSuccess("success",res))
 }
