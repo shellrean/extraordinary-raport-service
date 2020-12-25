@@ -15,6 +15,8 @@ import (
     _userRepo "github.com/shellrean/extraordinary-raport/services/user/repository/postgres"
     _userCacheRepo "github.com/shellrean/extraordinary-raport/services/user/repository/redis"
     _userUsecase "github.com/shellrean/extraordinary-raport/services/user/usecase"
+    _studentRepo "github.com/shellrean/extraordinary-raport/services/student/repository/postgres"
+    _studnetUsecase "github.com/shellrean/extraordinary-raport/services/student/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     httpHandler "github.com/shellrean/extraordinary-raport/interface/http/handler"
 )
@@ -73,6 +75,9 @@ func main() {
     userCacheRepo := _userCacheRepo.NewRedisUserRepository(redis)
     userUsecase := _userUsecase.NewUserUsecase(userRepo, userCacheRepo, timeoutContext, cfg)
 
+    studentRepo := _studentRepo.NewPostgresStudentRepository(db)
+    studentUsecase := _studnetUsecase.NewStudentUsecase(studentRepo, timeoutContext)
+
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
     }
@@ -82,7 +87,8 @@ func main() {
     mddl := _middleware.InitMiddleware(cfg)
 
     httpHandler.NewUserHandler(r, userUsecase, cfg, mddl)
-    
+    httpHandler.NewStudentHandler(r, studentUsecase, cfg)
+
     // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
     err = r.Run(fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port))
