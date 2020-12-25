@@ -53,12 +53,12 @@ func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRe
     }
 
     if user == (domain.User{}) {
-        return domain.DTOTokenResponse{}, domain.ErrInvalidUser
+        return domain.DTOTokenResponse{}, domain.ErrUserNotFound
     }
 
     err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(ur.Password))
     if err != nil {
-        return domain.DTOTokenResponse{}, domain.ErrInvalidUser
+        return domain.DTOTokenResponse{}, domain.ErrCredential
     }
 
     td := &domain.TokenDetails{}
@@ -95,11 +95,11 @@ func (u *userUsecase) RefreshToken(c context.Context, to domain.DTOTokenResponse
     
     token, errs := helper.VerifyToken(u.cfg.JWTRefreshKey, to.RefreshToken)
     if errs != nil {
-        return domain.DTOTokenResponse{}, domain.ErrUnauthorized
+        return domain.DTOTokenResponse{}, domain.ErrSessVerifation
     }
     err = helper.TokenValid(token)
     if err != nil {
-        return domain.DTOTokenResponse{}, domain.ErrInvalidToken
+        return domain.DTOTokenResponse{}, domain.ErrSessInvalid
     }
 
     data := helper.ExtractTokenMetadata(token)
