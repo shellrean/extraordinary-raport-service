@@ -15,29 +15,42 @@ type User struct {
     UpdatedAt   time.Time   `json:"updated_at"`
 }
 
-/**
- * DTOUserLoginRequest
- * for store user request payload
- */
+// DTOUserLoginRequest
+// for store user request payload
 type DTOUserLoginRequest struct {
 	Email		string 		`json:"email" validate:"required,email"`
 	Password	string		`json:"password" validate:"required"`
 }
 
+// DTOUserList
+//for response list of user
+type DTOUserShow struct {
+    ID          int64       `json:"id"`
+    Name        string      `json:"name"`
+    Email       string      `json:"email"`
+    CreatedAt   time.Time   `json:"created_at"`
+    UpdatedAt   time.Time   `json:"updated_at"`
+}
+
 // UserUsecase represent the user's usecase
 type UserUsecase interface {
-    Authentication(ctx context.Context, ur DTOUserLoginRequest) (t DTOTokenResponse, err error)
-    RefreshToken(ctx context.Context, ur DTOTokenResponse) (t DTOTokenResponse, err error)
+    Fetch(ctx context.Context, cursor string, num int64) ([]DTOUserShow, string, error)
+    Authentication(ctx context.Context, ur DTOUserLoginRequest) (DTOTokenResponse, error)
+    RefreshToken(ctx context.Context, ur DTOTokenResponse) (DTOTokenResponse, error)
 }
 
 // UserRepository represent the user's repository
 type UserRepository interface {
-    Fetch(ctx context.Context, num int64) (res []User, err error)
-    GetByEmail(ctx context.Context, email string) (res User, err error)
+    Fetch(ctx context.Context, cursor int64, num int64) ([]User, error)
+    GetByID(ctx context.Context, id int64) (User, error)
+    GetByEmail(ctx context.Context, email string) (User, error)
+    Store(ctx context.Context, u *User) (error)
+    Update(ctx context.Context, u *User) (error)
+    Delete(ctx context.Context, id int64) (error)
 }
 
 // UserCacheRepository represent the user's caching
 type UserCacheRepository interface {
-    StoreAuth(ctx context.Context, u User, td *TokenDetails) (err error)
-    DeleteAuth(ctx context.Context, uuid string) (err error)
+    StoreAuth(ctx context.Context, u User, td *TokenDetails) (error)
+    DeleteAuth(ctx context.Context, uuid string) (error)
 }
