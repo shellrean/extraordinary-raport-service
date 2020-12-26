@@ -16,6 +16,10 @@ func GetErrorMessage(e validator.FieldError) (message string) {
 		message = fmt.Sprintf("%s must be greater or equal than %s", e.Field(), e.Param())
 	case "lte":
 		message = fmt.Sprintf("%s must be less or equal than %s", e.Field(), e.Param())
+	case "min":
+		message = fmt.Sprintf("%s min is %s", e.Field(), e.Param())
+	case "max":
+		message = fmt.Sprintf("%s max is %s", e.Field(), e.Param())
 	}
 	
 	return
