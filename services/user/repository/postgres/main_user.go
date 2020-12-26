@@ -97,25 +97,13 @@ func (m *postgresUserRepository) GetByEmail(ctx context.Context, email string) (
 
 func (m *postgresUserRepository) Store(ctx context.Context, u *domain.User) (err error) {
     query := `INSERT INTO users (name, email, password, created_at, updated_at)
-            VALUES ($1,$2,$3,$4,$5)`
+            VALUES ($1,$2,$3,$4,$5) RETURNING id`
         
-    result, err := m.Conn.ExecContext(ctx, query, u.Name, u.Email, u.Password, u.CreatedAt, u.UpdatedAt)
+    err = m.Conn.QueryRowContext(ctx, query, u.Name, u.Email, u.Password, u.CreatedAt, u.UpdatedAt).Scan(&u.ID)
     if err != nil {
         return err
     }
-    rows, err := result.RowsAffected()
-    if err != nil {
-        return err
-    }
-    if rows != 1 {
-        return fmt.Errorf("expected single row affected, got %d rows affected", rows)
-    }
-
-    userId, err := result.LastInsertId()
-    if err != nil {
-        return err
-    }
-    u.ID = userId
+    
     return
 }
 
