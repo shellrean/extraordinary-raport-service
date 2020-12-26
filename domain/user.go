@@ -8,9 +8,9 @@ import (
 // User ...
 type User struct {
     ID          int64       `json:"id"`
-    Name        string      `json:"name"`
-    Email       string      `json:"email"`
-    Password    string      `json:"password"`
+    Name        string      `json:"name" validate:"required"`
+    Email       string      `json:"email" validate:"required,email"`
+    Password    string      `json:"password" validate:"required,min=6"`
     CreatedAt   time.Time   `json:"created_at"`
     UpdatedAt   time.Time   `json:"updated_at"`
 }
@@ -35,6 +35,8 @@ type DTOUserShow struct {
 // UserUsecase represent the user's usecase
 type UserUsecase interface {
     Fetch(ctx context.Context, cursor string, num int64) ([]DTOUserShow, string, error)
+    GetByID(ctx context.Context, id int64) (DTOUserShow, error)
+    Store(ctx context.Context, ur User) (DTOUserShow, error)
     Authentication(ctx context.Context, ur DTOUserLoginRequest) (DTOTokenResponse, error)
     RefreshToken(ctx context.Context, ur DTOTokenResponse) (DTOTokenResponse, error)
 }
