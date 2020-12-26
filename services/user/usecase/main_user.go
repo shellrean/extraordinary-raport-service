@@ -3,6 +3,7 @@ package usecase
 import (
     "context"
     "time"
+    "fmt"
 
     "golang.org/x/crypto/bcrypt"
 
@@ -44,6 +45,10 @@ func (u *userUsecase) Fetch(c context.Context, cursor string, num int64) (result
     var res []domain.User
     res, err = u.userRepo.Fetch(ctx, decodedCursor, num)
     if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
         return
     }
 
@@ -71,6 +76,10 @@ func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRe
 
     user, err := u.userRepo.GetByEmail(ctx, ur.Email)
     if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
         return
     }
 
@@ -157,6 +166,77 @@ func (u *userUsecase) RefreshToken(c context.Context, to domain.DTOTokenResponse
     t = domain.DTOTokenResponse{
         AccessToken:    td.AccessToken,
         RefreshToken:   td.RefreshToken,
+    }
+
+    return
+}
+
+func (u *userUsecase) GetByID(c context.Context, id int64) (res domain.DTOUserShow, err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    row := domain.User{}
+    row, err = u.userRepo.GetByID(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    if row == (domain.User{}) {
+        return domain.DTOUserShow{}, domain.ErrNotFound
+    }
+    res = domain.DTOUserShow{
+        ID: row.ID,
+        Name: row.Name,
+        Email: row.Email,
+        CreatedAt: row.CreatedAt,
+        UpdatedAt: row.UpdatedAt,
+    }
+    return
+}
+
+func (u *userUsecase) Store(c context.Context, ur domain.User) (res domain.DTOUserShow, err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    row, err := u.userRepo.GetByEmail(ctx, ur.Email)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return
+    }
+    if row != (domain.User{}) {
+        return domain.DTOUserShow{}, fmt.Errorf("Email already taken")
+    }
+
+    password, err := bcrypt.GenerateFromPassword([]byte(ur.Password), 10)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return
+    }
+    ur.Password = string(password)
+    ur.CreatedAt = time.Now()
+    ur.UpdatedAt = time.Now()
+
+    if err := u.userRepo.Store(ctx, &ur); err != nil {
+        if u.cfg.Release {
+            return domain.DTOUserShow{}, domain.ErrServerError
+        }
+        return domain.DTOUserShow{}, err
+    }
+    res = domain.DTOUserShow{
+        ID:     ur.ID,
+        Name:   ur.Name,
+        Email:  ur.Email,
+        CreatedAt: ur.CreatedAt,
+        UpdatedAt: ur.UpdatedAt,
     }
 
     return
