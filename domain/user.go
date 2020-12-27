@@ -26,17 +26,29 @@ type DTOUserLoginRequest struct {
 //for response list of user
 type DTOUserShow struct {
     ID          int64       `json:"id"`
-    Name        string      `json:"name"`
-    Email       string      `json:"email"`
+    Name        string      `json:"name" validate:"required"`
+    Email       string      `json:"email" validate:"required,email"`
     CreatedAt   time.Time   `json:"created_at"`
     UpdatedAt   time.Time   `json:"updated_at"`
 }
+
+// DTOUserUpdate
+// for response update user
+type DTOUserUpdate struct {
+    ID          int64       `json:"id"`
+    Name        string      `json:"name" validate:"required"`
+    Email       string      `json:"email" validate:"required,email"`
+    UpdatedAt   time.Time   `json:"updated_at"`
+}
+
+// 
 
 // UserUsecase represent the user's usecase
 type UserUsecase interface {
     Fetch(ctx context.Context, cursor string, num int64) ([]DTOUserShow, string, error)
     GetByID(ctx context.Context, id int64) (DTOUserShow, error)
     Store(ctx context.Context, ur User) (DTOUserShow, error)
+    Update(ctx context.Context, ur *DTOUserUpdate) (error)
     Authentication(ctx context.Context, ur DTOUserLoginRequest) (DTOTokenResponse, error)
     RefreshToken(ctx context.Context, ur DTOTokenResponse) (DTOTokenResponse, error)
 }

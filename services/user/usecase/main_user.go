@@ -241,3 +241,27 @@ func (u *userUsecase) Store(c context.Context, ur domain.User) (res domain.DTOUs
 
     return
 }
+
+func (u *userUsecase) Update(c context.Context, ur *domain.DTOUserUpdate) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    ur.UpdatedAt = time.Now()
+
+    us := domain.User{
+        ID:     ur.ID,
+        Name:   ur.Name,
+        Email:  ur.Email,
+        UpdatedAt: ur.UpdatedAt,
+    }
+
+    err = u.userRepo.Update(ctx, &us)
+    if err != nil {
+        if u.cfg.Release {
+            return domain.ErrServerError
+        }
+        return
+    }
+
+    return
+}
