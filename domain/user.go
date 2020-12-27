@@ -49,6 +49,7 @@ type UserUsecase interface {
     GetByID(ctx context.Context, id int64) (DTOUserShow, error)
     Store(ctx context.Context, ur User) (DTOUserShow, error)
     Update(ctx context.Context, ur *DTOUserUpdate) (error)
+    Delete(ctx context.Context, id int64) (error)
     Authentication(ctx context.Context, ur DTOUserLoginRequest) (DTOTokenResponse, error)
     RefreshToken(ctx context.Context, ur DTOTokenResponse) (DTOTokenResponse, error)
 }
