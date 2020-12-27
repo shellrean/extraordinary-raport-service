@@ -265,3 +265,17 @@ func (u *userUsecase) Update(c context.Context, ur *domain.DTOUserUpdate) (err e
 
     return
 }
+
+func (u *userUsecase) Delete(c context.Context, id int64) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    err = u.userRepo.Delete(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            return domain.ErrServerError
+        }
+        return
+    }
+    return
+}
