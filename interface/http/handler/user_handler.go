@@ -31,6 +31,7 @@ func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mdd
     r.GET("/users/:id", handler.mddl.Auth(), handler.Show)
     r.POST("/users", handler.mddl.Auth(), handler.Store)
     r.PUT("/users/:id", handler.mddl.Auth(), handler.Update)
+    r.DELETE("/users/:id", handler.mddl.Auth(), handler.Delete)
     r.POST("/auth", handler.Autheticate)
     r.POST("/refresh-token", handler.RefreshToken)
 }
@@ -264,4 +265,46 @@ func (h *UserHandler) Update(c *gin.Context) {
         return
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("update user success", u))
+}
+
+func (h *UserHandler) Delete(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    res, err := h.userUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    if res == (domain.DTOUserShow{}) {
+        err_code := helper.GetErrorCode(domain.ErrNotFound)
+        c.JSON(
+            api.GetHttpStatusCode(domain.ErrNotFound),
+            api.ResponseError(domain.ErrNotFound.Error(), err_code),
+        )
+        return
+    }
+
+    err = h.userUsecase.Delete(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("delete user success", make([]string,0)))
 }
