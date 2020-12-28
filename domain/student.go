@@ -40,9 +40,9 @@ type Student struct {
 }
 
 type StudentRepository interface {
-	Fetch(ctx context.Context, num int64) (res []Student, err error)
+	Fetch(ctx context.Context, cursor int64, num int64) (res []Student, err error)
 }
 
 type StudentUsecase interface {
-	Fetch(ctx context.Context, num int64) (res []Student, err error)
+	Fetch(ctx context.Context, cursor string, num int64) (res []Student, nextCursor string, err error)
 }
