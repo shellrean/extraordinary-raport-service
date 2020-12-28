@@ -76,7 +76,7 @@ func main() {
     userUsecase := _userUsecase.NewUserUsecase(userRepo, userCacheRepo, timeoutContext, cfg)
 
     studentRepo := _studentRepo.NewPostgresStudentRepository(db)
-    studentUsecase := _studnetUsecase.NewStudentUsecase(studentRepo, timeoutContext)
+    studentUsecase := _studnetUsecase.NewStudentUsecase(studentRepo, timeoutContext, cfg)
 
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
@@ -87,7 +87,7 @@ func main() {
     mddl := _middleware.InitMiddleware(cfg)
 
     httpHandler.NewUserHandler(r, userUsecase, cfg, mddl)
-    httpHandler.NewStudentHandler(r, studentUsecase, cfg)
+    httpHandler.NewStudentHandler(r, studentUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
