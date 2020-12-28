@@ -5,32 +5,51 @@ import (
 	"time"
 
 	"github.com/shellrean/extraordinary-raport/domain"
+	"github.com/shellrean/extraordinary-raport/config"
+	"github.com/shellrean/extraordinary-raport/entities/helper"
 )
 
 type studentUsecase struct {
 	studentRepo		domain.StudentRepository
 	contextTimeout 	time.Duration
+	cfg 			*config.Config
 }
 
-func NewStudentUsecase(d domain.StudentRepository, timeout time.Duration) domain.StudentUsecase {
+func NewStudentUsecase(d domain.StudentRepository, timeout time.Duration, cfg *config.Config) domain.StudentUsecase {
 	return &studentUsecase {
 		studentRepo:		d,
 		contextTimeout:		timeout,
+		cfg: 				cfg,
 	}
 }
 
-func (u *studentUsecase) Fetch(c context.Context, num int64) (res []domain.Student, err error) {
+func (u *studentUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.Student, nextCursor string, err error) {
 	if num == 0 {
-		num = 10
+		num = int64(10)
 	}
 
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
-	res, err = u.studentRepo.Fetch(ctx, num)
-	if err != nil {
-		return nil, err
+	decodedCursor, err := helper.DecodeCursor(cursor)
+    if err != nil && cursor != "" {
+        err = domain.ErrBadParamInput
+        return
 	}
+	
+
+	res, err = u.studentRepo.Fetch(ctx, decodedCursor, num)
+	if err != nil {
+		if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return
+	}
+
+	if len(res) == int(num) {
+        nextCursor = helper.EncodeCursor(res[len(res)-1].ID)
+    }
 
 	return
 }
