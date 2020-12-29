@@ -19,9 +19,9 @@ type Familly struct {
 
 type Student struct {
 	ID				int64		`json:"id"`
-	SRN				string 		`json:"srn"`
-	NSRN			string 		`json:"nsrn"`
-	Name			string 		`json:"name"`
+	SRN				string 		`json:"srn" validate:"required"`
+	NSRN			string 		`json:"nsrn" validate:"required"`
+	Name			string 		`json:"name" validate:"required"`
 	Gender			string 		`json:"gender"`
 	BirthPlace		string 		`json:"birth_place"`
 	BirthDate		string		`json:"birth_date"`
@@ -32,7 +32,7 @@ type Student struct {
 	AcceptedGrade	string 		`json:"accepted_grade"`
 	AcceptedDate	string 		`json:"accepted_date"`
 	Familly			Familly		`json:"familly"`
-	Father 			Parent		`json:"fater"`
+	Father 			Parent		`json:"father"`
 	Mother			Parent		`json:"mother"`
 	Guardian		Parent		`json:"guardian"`
 	CreatedAt		time.Time 	`json:"created_at"`
@@ -40,9 +40,15 @@ type Student struct {
 }
 
 type StudentRepository interface {
-	Fetch(ctx context.Context, cursor int64, num int64) (res []Student, err error)
+	Fetch(ctx context.Context, cursor int64, num int64) ([]Student, error)
+	GetByID(ctx context.Context, id int64) (Student, error)
+	Store(ctx context.Context, s *Student) (error)
+	Update(ctx context.Context, s *Student) (error)
 }
 
 type StudentUsecase interface {
-	Fetch(ctx context.Context, cursor string, num int64) (res []Student, nextCursor string, err error)
+	Fetch(ctx context.Context, cursor string, num int64) ([]Student, string, error)
+	GetByID(ctx context.Context, id int64) (Student, error)
+	Store(ctx context.Context, s *Student) (error)
+	Update(ctx context.Context, s *Student) (error)
 }
