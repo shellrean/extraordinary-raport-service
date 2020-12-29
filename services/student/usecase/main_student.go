@@ -53,3 +53,55 @@ func (u *studentUsecase) Fetch(c context.Context, cursor string, num int64) (res
 
 	return
 }
+
+func (u *studentUsecase) GetByID(c context.Context, id int64) (res domain.Student, err error) {
+	ctx, cancel := context.WithTimeout(c,u.contextTimeout)
+	defer cancel()
+
+	res, err = u.studentRepo.GetByID(ctx, id)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+	return
+}
+
+func (u *studentUsecase) Store(c context.Context, s *domain.Student) (err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+
+	s.CreatedAt = time.Now()
+	s.UpdatedAt = time.Now()
+	
+	err = u.studentRepo.Store(ctx, s)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	return
+}
+
+func (u *studentUsecase) Update(c context.Context, s *domain.Student) (err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	s.UpdatedAt = time.Now()
+	err = u.studentRepo.Update(ctx, s)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	return
+}
