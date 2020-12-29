@@ -29,6 +29,9 @@ var (
 	// (1007) bad parameter input
 	ErrBadParamInput = errors.New("Bad parameter input")
 
+	// (1008) data is existing
+	ErrExistData = errors.New("Data is exist")
+
 	// (1101) unauthorized
 	ErrUnauthorized = errors.New("Unauthorized")
 
@@ -90,6 +93,7 @@ var ErrorCode = map[error]int{
 	ErrInvalidTimezone:	1005,
 	ErrTooManyRequest:	1006,
 	ErrBadParamInput:	1007,
+	ErrExistData:		1008,
 	ErrUnauthorized:	1101,
 	ErrNoAuthorized:	1102,
 	ErrUnprocess:		1103,
