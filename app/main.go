@@ -17,6 +17,8 @@ import (
     _userUsecase "github.com/shellrean/extraordinary-raport/services/user/usecase"
     _studentRepo "github.com/shellrean/extraordinary-raport/services/student/repository/postgres"
     _studnetUsecase "github.com/shellrean/extraordinary-raport/services/student/usecase"
+    _academicRepo "github.com/shellrean/extraordinary-raport/services/academic/repository/postgres"
+    _academicUsecase "github.com/shellrean/extraordinary-raport/services/academic/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     httpHandler "github.com/shellrean/extraordinary-raport/interface/http/handler"
 )
@@ -78,6 +80,9 @@ func main() {
     studentRepo := _studentRepo.NewPostgresStudentRepository(db)
     studentUsecase := _studnetUsecase.NewStudentUsecase(studentRepo, timeoutContext, cfg)
 
+    academicRepo := _academicRepo.NewPostgresAcademicRepository(db)
+    academicUsecase := _academicUsecase.NewAcademicUsecase(academicRepo, timeoutContext, cfg)
+
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
     }
@@ -88,6 +93,7 @@ func main() {
 
     httpHandler.NewUserHandler(r, userUsecase, cfg, mddl)
     httpHandler.NewStudentHandler(r, studentUsecase, cfg, mddl)
+    httpHandler.NewAcademicHandler(r, academicUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
