@@ -2,7 +2,7 @@ package domain
 
 import (
 	"time"
-	// "context"
+	"context"
 )
 
 type Classroom struct {
@@ -12,4 +12,19 @@ type Classroom struct {
 	Major 		Major 		`json:"major"`
 	CreatedAt 	time.Time 	`json:"created_at"`
 	UpdatedAt 	time.Time 	`json:"updated_at"`
+}
+
+type ClassroomStandart struct {
+	ID 			int64 		`json:"id"`
+	Name 		string 		`json:"name"`
+	Grade 		string 		`json:"grade"`
+	MajorID 	int64 		`json:"major_id"`
+}
+
+type ClassroomRepository interface {
+	Fetch(ctx context.Context) ([]Classroom, error)
+}
+
+type ClassroomUsecase interface {
+	Fetch(ctx context.Context) ([]ClassroomStandart, error)
 }
