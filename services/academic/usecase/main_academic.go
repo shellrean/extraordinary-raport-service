@@ -46,7 +46,14 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 	currentTime := time.Now() 
 	year := currentTime.Year()
 	month := currentTime.Month()
-	list, err := u.academicRepo.GetByYearAndSemester(ctx, year, int(month))
+
+	var semester uint8
+	if int(month) >= 6 {
+		semester = 2
+	} else {
+		semester = 1
+	}
+	list, err := u.academicRepo.GetByYearAndSemester(ctx, year, int(semester))
 	if err != nil {
 		if u.cfg.Release {
             err = domain.ErrServerError
@@ -62,7 +69,7 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 
 	res = domain.Academic{
 		Name:	strconv.Itoa(year),
-		Semester: uint8(month),
+		Semester: semester,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
