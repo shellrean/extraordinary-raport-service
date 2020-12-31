@@ -19,7 +19,7 @@ func NewRedisUserRepository(Conn *redis.Client) domain.UserCacheRepository {
 	}
 }
 
-func (m *redisUserRepository) StoreAuth(ctx context.Context, u domain.User, td *domain.TokenDetails) (err error) {
+func (m *redisUserRepository) StoreAuth(ctx context.Context, u domain.User, td *domain.Token) (err error) {
 	at := time.Unix(td.AtExpires, 0)
 	rt := time.Unix(td.RtExpires, 0)
 	now := time.Now()
