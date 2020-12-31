@@ -25,8 +25,11 @@ func NewAcademicHandler(r *gin.Engine, m domain.AcademicUsecase, cfg *config.Con
 		config:					cfg,
 		mddl:					mddl,
 	}
-	r.GET("/academics", handler.mddl.Auth(), handler.Fetch)
-	r.GET("/academics-generate", handler.mddl.Auth(), handler.Generate)
+	r.Use(handler.mddl.CORS())
+	auth := r.Group("/", handler.mddl.Auth())
+	
+	auth.GET("/academics", handler.Fetch)
+	auth.GET("/academics-generate", handler.Generate)
 }
 
 func (h *academicHandler) Fetch(c *gin.Context) {

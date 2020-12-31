@@ -25,7 +25,10 @@ func NewClassroomHandler(r *gin.Engine, m domain.ClassroomUsecase, cfg *config.C
 		config:				cfg,
 		mddl:				mddl,
 	}
-	r.GET("/classrooms", handler.mddl.Auth(), handler.Fetch)
+	r.Use(handler.mddl.CORS())
+	auth := r.Group("/", handler.mddl.Auth())
+	
+	auth.GET("/classrooms", handler.Fetch)
 }
 
 func (h *classHandler) Fetch(c *gin.Context) {

@@ -27,10 +27,12 @@ func NewStudentHandler(r *gin.Engine, m domain.StudentUsecase, cfg *config.Confi
 		config: cfg,
 		mddl:	mddl,
 	}
+    r.Use(handler.mddl.CORS())
+    auth := r.Group("/", handler.mddl.Auth())
 
-	r.GET("/students", handler.mddl.Auth(), handler.Index)
-	r.POST("/students", handler.mddl.Auth(), handler.Store)
-	r.PUT("/students/:id", handler.mddl.Auth(), handler.Update)
+	auth.GET("/students", handler.Index)
+	auth.POST("/students", handler.Store)
+	auth.PUT("/students/:id", handler.Update)
 }
 
 func (h *studentHandler) Index(c *gin.Context) {
