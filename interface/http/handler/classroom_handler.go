@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellrean/extraordinary-raport/config"
 	"github.com/shellrean/extraordinary-raport/domain"
+	"github.com/shellrean/extraordinary-raport/entities/DTO"
 	"github.com/shellrean/extraordinary-raport/entities/helper"
 	"github.com/shellrean/extraordinary-raport/interface/http/api"
 	"github.com/shellrean/extraordinary-raport/interface/http/middleware"
@@ -37,5 +38,17 @@ func (h *classHandler) Fetch(c *gin.Context) {
         )
         return
 	}
-	c.JSON(http.StatusOK, api.ResponseSuccess("success", res)) 
+
+	var data []dto.ClassroomResponse
+	for _, item := range res {
+		class := dto.ClassroomResponse {
+			ID: 		item.ID,
+			Name:		item.Name,
+			MajorID: 	item.Major.ID,
+			Grade:		item.Grade,
+		}
+		data = append(data, class)
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
