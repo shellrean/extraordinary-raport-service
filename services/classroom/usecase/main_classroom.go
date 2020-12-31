@@ -22,29 +22,17 @@ func NewClassroomUsecase(d domain.ClassroomRepository, timeout time.Duration, cf
 	}
 }
 
-func (u *classroomUsecase) Fetch(c context.Context) (res []domain.ClassroomStandart, err error) {
+func (u *classroomUsecase) Fetch(c context.Context) (res []domain.Classroom, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
-	var result []domain.Classroom
-	result, err = u.classRepo.Fetch(ctx)
+	res, err = u.classRepo.Fetch(ctx)
 	if err != nil {
 		if u.cfg.Release {
             err = domain.ErrServerError
             return
         }
         return
-	}
-
-	for idx, _ := range result {
-		class := domain.ClassroomStandart {
-			ID: 		result[idx].ID,
-			Name:		result[idx].Name,
-			MajorID: 	result[idx].Major.ID,
-			Grade:		result[idx].Grade,
-		}
-
-		res = append(res, class)
 	}
 
 	return
