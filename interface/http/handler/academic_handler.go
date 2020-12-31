@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/go-playground/validator/v10"
 
 	"github.com/shellrean/extraordinary-raport/config"
-    "github.com/shellrean/extraordinary-raport/domain"
+	"github.com/shellrean/extraordinary-raport/domain"
+	"github.com/shellrean/extraordinary-raport/entities/DTO"
     "github.com/shellrean/extraordinary-raport/entities/helper"
     "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     "github.com/shellrean/extraordinary-raport/interface/http/api"
@@ -39,7 +39,17 @@ func (h *academicHandler) Fetch(c *gin.Context) {
         )
         return
 	}
-	c.JSON(http.StatusOK, api.ResponseSuccess("success", res)) 
+	var data []dto.AcademicResponse
+	for _, item := range res {
+		academic := dto.AcademicResponse {
+			ID:		item.ID,
+			Name: 	item.Name,
+			Semester: item.Semester,
+		}
+		data = append(data, academic)
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
 func (h *academicHandler) Generate(c *gin.Context) {
@@ -52,5 +62,12 @@ func (h *academicHandler) Generate(c *gin.Context) {
         )
         return
 	}
-	c.JSON(http.StatusOK, api.ResponseSuccess("success generate academic year", res)) 
+
+	data := dto.AcademicResponse {
+		ID: res.ID,
+		Name: res.Name,
+		Semester: res.Semester,
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("success generate academic year",data)) 
 }
