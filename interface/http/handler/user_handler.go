@@ -10,6 +10,7 @@ import (
 
     "github.com/shellrean/extraordinary-raport/config"
     "github.com/shellrean/extraordinary-raport/domain"
+    "github.com/shellrean/extraordinary-raport/entities/DTO"
     "github.com/shellrean/extraordinary-raport/entities/helper"
     "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     "github.com/shellrean/extraordinary-raport/interface/http/api"
@@ -51,12 +52,22 @@ func (h *UserHandler) FetchUsers(c *gin.Context) {
         return
     }
 
+    var data []dto.UserResponse
+    for _, item := range res {
+        user := dto.UserResponse{
+            ID:     item.ID,
+            Name:   item.Name,
+            Email:  item.Email,
+        }
+        data = append(data, user)
+    }
+
     c.Header("X-Cursor", nextCursor)
-    c.JSON(http.StatusOK, api.ResponseSuccess("success", res)) 
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
 func (h *UserHandler) Autheticate(c *gin.Context) {
-    var u domain.DTOUserLoginRequest
+    var u dto.UserLogin
     if err := c.ShouldBindJSON(&u); err != nil {
         error_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
@@ -90,7 +101,12 @@ func (h *UserHandler) Autheticate(c *gin.Context) {
         return
     }
 
-    res, err := h.userUsecase.Authentication(c, u)
+    user := domain.User{
+        Email: u.Email,
+        Password: u.Password,
+    }
+
+    res, err := h.userUsecase.Authentication(c, user)
     if err != nil {
         error_code := helper.GetErrorCode(err)
         c.JSON(
@@ -99,12 +115,17 @@ func (h *UserHandler) Autheticate(c *gin.Context) {
         )
         return
     }
+
+    data := dto.TokenResponse {
+        AccessToken: res.AccessToken,
+        RefreshToken: res.RefreshToken,
+    }
     
-    c.JSON(http.StatusOK, api.ResponseSuccess("success",res))
+    c.JSON(http.StatusOK, api.ResponseSuccess("success",data))
 }
 
 func (h *UserHandler) RefreshToken(c *gin.Context) {
-    var u domain.DTOTokenResponse
+    var u dto.TokenResponse
     if err := c.ShouldBindJSON(&u); err != nil {
         error_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
@@ -114,7 +135,12 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
         return
     }
 
-    res, err := h.userUsecase.RefreshToken(c, u)
+    token := domain.Token {
+        AccessToken: u.AccessToken,
+        RefreshToken: u.RefreshToken,
+    }
+
+    err := h.userUsecase.RefreshToken(c, &token)
     if err != nil {
         error_code := helper.GetErrorCode(err)
         c.JSON(
@@ -123,8 +149,13 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
         )
         return
     }
+
+    data := dto.TokenResponse{
+        token.AccessToken,
+        token.RefreshToken,
+    }
     
-    c.JSON(http.StatusOK, api.ResponseSuccess("success",res))
+    c.JSON(http.StatusOK, api.ResponseSuccess("success",data))
 }
 
 func (h *UserHandler) Show(c *gin.Context) {
@@ -138,7 +169,7 @@ func (h *UserHandler) Show(c *gin.Context) {
         )
         return
     }
-    res := domain.DTOUserShow{}
+    res := domain.User{}
     res, err = h.userUsecase.GetByID(c, int64(id))
     if err != nil {
         err_code := helper.GetErrorCode(err)
@@ -148,7 +179,12 @@ func (h *UserHandler) Show(c *gin.Context) {
         )
         return
     }
-    c.JSON(http.StatusOK, api.ResponseSuccess("success", res))
+    data := dto.UserResponse {
+        ID: res.ID,
+        Name: res.Name,
+        Email: res.Email,
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
 func (h *UserHandler) Store(c *gin.Context) {
@@ -182,7 +218,7 @@ func (h *UserHandler) Store(c *gin.Context) {
         return
     }
 
-    res, err := h.userUsecase.Store(c, u)
+    err := h.userUsecase.Store(c, &u)
     if err != nil {
         err_code := helper.GetErrorCode(err)
         c.JSON(
@@ -191,7 +227,12 @@ func (h *UserHandler) Store(c *gin.Context) {
         )
         return
     }
-    c.JSON(http.StatusOK, api.ResponseSuccess("create user success", res))
+    data := dto.UserResponse{
+        ID:     u.ID,
+        Name:   u.Name,
+        Email:  u.Email,
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("create user success", data))
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
@@ -215,7 +256,7 @@ func (h *UserHandler) Update(c *gin.Context) {
         return
     }
 
-    if res == (domain.DTOUserShow{}) {
+    if res == (domain.User{}) {
         err_code := helper.GetErrorCode(domain.ErrNotFound)
         c.JSON(
             api.GetHttpStatusCode(domain.ErrNotFound),
@@ -224,7 +265,7 @@ func (h *UserHandler) Update(c *gin.Context) {
         return
     }
 
-    var u domain.DTOUserUpdate
+    var u dto.UserResponse
     err = c.ShouldBindJSON(&u)
     if err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -255,7 +296,12 @@ func (h *UserHandler) Update(c *gin.Context) {
         return
     }
     u.ID = int64(id)
-    err = h.userUsecase.Update(c, &u)
+    user := domain.User{
+        ID:     u.ID,
+        Name:   u.Name,
+        Email:  u.Email,
+    }
+    err = h.userUsecase.Update(c, &user)
     if err != nil {
         err_code := helper.GetErrorCode(err)
         c.JSON(
@@ -288,7 +334,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
         return
     }
 
-    if res == (domain.DTOUserShow{}) {
+    if res == (domain.User{}) {
         err_code := helper.GetErrorCode(domain.ErrNotFound)
         c.JSON(
             api.GetHttpStatusCode(domain.ErrNotFound),
