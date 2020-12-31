@@ -28,7 +28,7 @@ func NewUserUsecase(d domain.UserRepository, dc domain.UserCacheRepository, time
     }
 }
 
-func (u *userUsecase) Fetch(c context.Context, cursor string, num int64) (result []domain.DTOUserShow, nextCursor string, err error) {
+func (u *userUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.User, nextCursor string, err error) {
     if num == 0 {
         num = int64(10)
     }
@@ -42,7 +42,6 @@ func (u *userUsecase) Fetch(c context.Context, cursor string, num int64) (result
         return
     }
 
-    var res []domain.User
     res, err = u.userRepo.Fetch(ctx, decodedCursor, num)
     if err != nil {
         if u.cfg.Release {
@@ -52,131 +51,108 @@ func (u *userUsecase) Fetch(c context.Context, cursor string, num int64) (result
         return
     }
 
-    for _, item := range res {
-        user := domain.DTOUserShow{
-            ID:     item.ID,
-            Name:   item.Name,
-            Email:  item.Email,
-            CreatedAt: item.CreatedAt,
-            UpdatedAt: item.UpdatedAt,
-        }
-        result = append(result, user)
-    }
-
-    if len(result) == int(num) {
-        nextCursor = helper.EncodeCursor(result[len(result)-1].ID)
+    if len(res) == int(num) {
+        nextCursor = helper.EncodeCursor(res[len(res)-1].ID)
     }
 
     return
 }
 
-func (u *userUsecase) Authentication(c context.Context, ur domain.DTOUserLoginRequest) (t domain.DTOTokenResponse, err error) {
+func (u *userUsecase) Authentication(c context.Context, ur domain.User) (td domain.Token, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     user, err := u.userRepo.GetByEmail(ctx, ur.Email)
     if err != nil {
         if u.cfg.Release {
-            err = domain.ErrServerError
-            return
+            return domain.Token{}, domain.ErrServerError
         }
-        return
+        return domain.Token{}, err
     }
 
     if user == (domain.User{}) {
-        return domain.DTOTokenResponse{}, domain.ErrUserNotFound
+        return domain.Token{}, domain.ErrUserNotFound
     }
 
     err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(ur.Password))
     if err != nil {
-        return domain.DTOTokenResponse{}, domain.ErrCredential
+        return domain.Token{}, domain.ErrCredential
     }
 
-    td := &domain.TokenDetails{}
-    helper.GenerateTokenDetail(td)
+    helper.GenerateTokenDetail(&td)
 
-    err = helper.CreateAccessToken(u.cfg.JWTAccessKey, user, td)
+    err = helper.CreateAccessToken(u.cfg.JWTAccessKey, user, &td)
     if err != nil {
-        return domain.DTOTokenResponse{}, err
+        return domain.Token{}, err
     }
     
-    err = helper.CreateRefreshToken(u.cfg.JWTRefreshKey, user, td)
+    err = helper.CreateRefreshToken(u.cfg.JWTRefreshKey, user, &td)
     if err != nil {
-        return domain.DTOTokenResponse{}, err
+        return domain.Token{}, err
     }
 
     if u.cfg.Redis.Enable {
-        err = u.userCacheRepo.StoreAuth(ctx, user, td)
+        err = u.userCacheRepo.StoreAuth(ctx, user, &td)
         if err != nil {
-            return domain.DTOTokenResponse{}, err
+            return domain.Token{}, err
         }
-    }
-
-    t = domain.DTOTokenResponse{
-        AccessToken:    td.AccessToken,
-        RefreshToken:   td.RefreshToken,
     }
 
     return
 }
 
-func (u *userUsecase) RefreshToken(c context.Context, to domain.DTOTokenResponse) (t domain.DTOTokenResponse, err error) {
+func (u *userUsecase) RefreshToken(c context.Context, td *domain.Token) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
     
-    token, errs := helper.VerifyToken(u.cfg.JWTRefreshKey, to.RefreshToken)
+    token, errs := helper.VerifyToken(u.cfg.JWTRefreshKey, td.RefreshToken)
     if errs != nil {
-        return domain.DTOTokenResponse{}, domain.ErrSessVerifation
+        return domain.ErrSessVerifation
     }
     err = helper.TokenValid(token)
     if err != nil {
-        return domain.DTOTokenResponse{}, domain.ErrSessInvalid
+        return domain.ErrSessInvalid
     }
 
     data := helper.ExtractTokenMetadata(token)
-    err = u.userCacheRepo.DeleteAuth(ctx, data["refresh_uuid"].(string))
-    if err != nil {
-        return domain.DTOTokenResponse{}, err
+    if u.cfg.Redis.Enable {
+        err = u.userCacheRepo.DeleteAuth(ctx, data["refresh_uuid"].(string))
+        if err != nil {
+            return err
+        }
     }
 
     user := domain.User{
         ID: int64(data["user_id"].(float64)),
     }
 
-    td := &domain.TokenDetails{}
     helper.GenerateTokenDetail(td)
 
     err = helper.CreateAccessToken(u.cfg.JWTAccessKey, user, td)
     if err != nil {
-        return domain.DTOTokenResponse{}, err
+        return err
     }
     
     err = helper.CreateRefreshToken(u.cfg.JWTRefreshKey, user, td)
     if err != nil {
-        return domain.DTOTokenResponse{}, err
+        return err
     }
 
     if u.cfg.Redis.Enable {
         err = u.userCacheRepo.StoreAuth(ctx, user, td)
         if err != nil {
-            return domain.DTOTokenResponse{}, err
+            return err
         }
-    }
-
-    t = domain.DTOTokenResponse{
-        AccessToken:    td.AccessToken,
-        RefreshToken:   td.RefreshToken,
     }
 
     return
 }
 
-func (u *userUsecase) GetByID(c context.Context, id int64) (res domain.DTOUserShow, err error) {
+func (u *userUsecase) GetByID(c context.Context, id int64) (res domain.User, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
-    row := domain.User{}
-    row, err = u.userRepo.GetByID(ctx, id)
+    res, err = u.userRepo.GetByID(ctx, id)
     if err != nil {
         if u.cfg.Release {
             err = domain.ErrServerError
@@ -184,20 +160,13 @@ func (u *userUsecase) GetByID(c context.Context, id int64) (res domain.DTOUserSh
         }
         return 
     }
-    if row == (domain.User{}) {
-        return domain.DTOUserShow{}, domain.ErrNotFound
-    }
-    res = domain.DTOUserShow{
-        ID: row.ID,
-        Name: row.Name,
-        Email: row.Email,
-        CreatedAt: row.CreatedAt,
-        UpdatedAt: row.UpdatedAt,
+    if res == (domain.User{}) {
+        return domain.User{}, domain.ErrNotFound
     }
     return
 }
 
-func (u *userUsecase) Store(c context.Context, ur domain.User) (res domain.DTOUserShow, err error) {
+func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -210,7 +179,7 @@ func (u *userUsecase) Store(c context.Context, ur domain.User) (res domain.DTOUs
         return
     }
     if row != (domain.User{}) {
-        return domain.DTOUserShow{}, fmt.Errorf("Email already taken")
+        return fmt.Errorf("Email already taken")
     }
 
     password, err := bcrypt.GenerateFromPassword([]byte(ur.Password), 10)
@@ -225,24 +194,17 @@ func (u *userUsecase) Store(c context.Context, ur domain.User) (res domain.DTOUs
     ur.CreatedAt = time.Now()
     ur.UpdatedAt = time.Now()
 
-    if err := u.userRepo.Store(ctx, &ur); err != nil {
+    if err = u.userRepo.Store(ctx, ur); err != nil {
         if u.cfg.Release {
-            return domain.DTOUserShow{}, domain.ErrServerError
+            return domain.ErrServerError
         }
-        return domain.DTOUserShow{}, err
-    }
-    res = domain.DTOUserShow{
-        ID:     ur.ID,
-        Name:   ur.Name,
-        Email:  ur.Email,
-        CreatedAt: ur.CreatedAt,
-        UpdatedAt: ur.UpdatedAt,
+        return
     }
 
     return
 }
 
-func (u *userUsecase) Update(c context.Context, ur *domain.DTOUserUpdate) (err error) {
+func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -265,6 +227,7 @@ func (u *userUsecase) Update(c context.Context, ur *domain.DTOUserUpdate) (err e
 
     return
 }
+
 
 func (u *userUsecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
