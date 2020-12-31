@@ -70,7 +70,7 @@ func VerifyToken(key string, tokenString string) (*jwt.Token, error) {
 
 func TokenValid(token *jwt.Token) error {
 	if _, ok := token.Claims.(jwt.Claims); !ok || !token.Valid {
-		return domain.ErrSessInvalid
+		return domain.ErrSessExpired
 	}
 	return nil
 }
