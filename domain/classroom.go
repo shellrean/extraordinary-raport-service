@@ -14,17 +14,10 @@ type Classroom struct {
 	UpdatedAt 	time.Time 	`json:"updated_at"`
 }
 
-type ClassroomStandart struct {
-	ID 			int64 		`json:"id"`
-	Name 		string 		`json:"name"`
-	Grade 		string 		`json:"grade"`
-	MajorID 	int64 		`json:"major_id"`
-}
-
 type ClassroomRepository interface {
 	Fetch(ctx context.Context) ([]Classroom, error)
 }
 
 type ClassroomUsecase interface {
-	Fetch(ctx context.Context) ([]ClassroomStandart, error)
+	Fetch(ctx context.Context) ([]Classroom, error)
 }
