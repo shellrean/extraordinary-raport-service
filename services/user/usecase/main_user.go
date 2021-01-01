@@ -208,6 +208,18 @@ func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
+    row, err := u.userRepo.GetByEmail(ctx, ur.Email)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return
+    }
+    if row != (domain.User{}) && row.ID != ur.ID {
+        return fmt.Errorf("Email already taken")
+    }
+
     ur.UpdatedAt = time.Now()
 
     us := domain.User{
