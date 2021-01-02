@@ -14,6 +14,7 @@ type Major struct {
 
 type MajorRepository interface {
 	Fetch(ctx context.Context) ([]Major, error)
+	GetByID(ctx context.Context, id int64) (Major, error)
 }
 
 type MajorUsecase interface {
