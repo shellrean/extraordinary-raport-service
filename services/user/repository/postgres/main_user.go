@@ -36,6 +36,7 @@ func (m *postgresUserRepository) fetch(ctx context.Context, query string, args .
             &t.Name,
             &t.Email,
             &t.Password,
+            &t.Role,
             &t.CreatedAt,
             &t.UpdatedAt,
         )
@@ -51,7 +52,7 @@ func (m *postgresUserRepository) fetch(ctx context.Context, query string, args .
 }
 
 func (m *postgresUserRepository) Fetch(ctx context.Context, cursor int64, num int64) (res []domain.User, err error) {
-    query := `SELECT id,name,email,password,created_at,updated_at
+    query := `SELECT id,name,email,password,role,created_at,updated_at
             FROM users WHERE id > $1 ORDER BY id LIMIT $2`
 
     res, err = m.fetch(ctx, query, cursor, num)
@@ -63,7 +64,7 @@ func (m *postgresUserRepository) Fetch(ctx context.Context, cursor int64, num in
 }
 
 func (m *postgresUserRepository) GetByID(ctx context.Context, id int64) (res domain.User, err error) {
-    query := `SELECT id,name,email,password,created_at,updated_at
+    query := `SELECT id,name,email,password,role,created_at,updated_at
             FROM users WHERE id=$1`
 
     list, err := m.fetch(ctx, query, id)
@@ -78,7 +79,7 @@ func (m *postgresUserRepository) GetByID(ctx context.Context, id int64) (res dom
 }
 
 func (m *postgresUserRepository) GetByEmail(ctx context.Context, email string) (res domain.User, err error) {
-    query := `SELECT id,name,email,password,created_at,updated_at
+    query := `SELECT id,name,email,password,role,created_at,updated_at
             FROM users WHERE email=$1`
 
     list, err := m.fetch(ctx, query, email)
@@ -96,10 +97,10 @@ func (m *postgresUserRepository) GetByEmail(ctx context.Context, email string) (
 }
 
 func (m *postgresUserRepository) Store(ctx context.Context, u *domain.User) (err error) {
-    query := `INSERT INTO users (name, email, password, created_at, updated_at)
-            VALUES ($1,$2,$3,$4,$5) RETURNING id`
+    query := `INSERT INTO users (name, email, password, role,created_at, updated_at)
+            VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`
         
-    err = m.Conn.QueryRowContext(ctx, query, u.Name, u.Email, u.Password, u.CreatedAt, u.UpdatedAt).Scan(&u.ID)
+    err = m.Conn.QueryRowContext(ctx, query, u.Name, u.Email, u.Password, u.Role,u.CreatedAt, u.UpdatedAt).Scan(&u.ID)
     if err != nil {
         return err
     }
@@ -108,10 +109,10 @@ func (m *postgresUserRepository) Store(ctx context.Context, u *domain.User) (err
 }
 
 func (m *postgresUserRepository) Update(ctx context.Context, u *domain.User) (err error) {
-    query := `UPDATE users SET name=$1, email=$2, password=$3, updated_at=$4
-            WHERE id=$5`
+    query := `UPDATE users SET name=$1, email=$2, password=$3, $role=$4 updated_at=$5
+            WHERE id=$6`
 
-    result, err := m.Conn.ExecContext(ctx, query, u.Name, u.Email, u.Password, u.UpdatedAt, u.ID)
+    result, err := m.Conn.ExecContext(ctx, query, u.Name, u.Email, u.Password, u.Role, u.UpdatedAt, u.ID)
     if err != nil {
         return err
     }
