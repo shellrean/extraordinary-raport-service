@@ -86,12 +86,12 @@ func main() {
 
     academicRepo := _academicRepo.NewPostgresAcademicRepository(db)
     academicUsecase := _academicUsecase.NewAcademicUsecase(academicRepo, timeoutContext, cfg)
-
-    classroomRepo := _classroomRepo.NewPostgresClassroomRepository(db)
-    classroomUsecase := _classroomUsecase.NewClassroomUsecase(classroomRepo, timeoutContext, cfg)
-
+    
     majorRepo := _majorRepo.NewPostgresMajorRepository(db)
     majorUsecase := _majorUsecase.NewMajorUsecase(majorRepo, timeoutContext, cfg)
+
+    classroomRepo := _classroomRepo.NewPostgresClassroomRepository(db)
+    classroomUsecase := _classroomUsecase.NewClassroomUsecase(classroomRepo, majorRepo, timeoutContext, cfg)
 
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
