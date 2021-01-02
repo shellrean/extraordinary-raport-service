@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"context"
+	"fmt"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 )
@@ -87,4 +88,37 @@ func (m *classroomRepository) Store(ctx context.Context, c *domain.Classroom) (e
 		return
 	}
 	return
+}
+
+func (m *classroomRepository) Update(ctx context.Context, c *domain.Classroom) (err error) {
+	query := `UPDATE classrooms SET name=$1, grade=$2, major_id=$3, updated_at=$4
+		WHERE id=$5`
+	result, err := m.Conn.ExecContext(ctx, query, c.Name, c.Grade, c.Major.ID, c.UpdatedAt, c.ID)
+	if err != nil {
+		return
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	if rows != 1 {
+		return fmt.Errorf("expected single row affected, got %d rows affected", rows)
+	}
+	return
+}
+
+func (m *classroomRepository) Delete(ctx context.Context, id int64) (err error) {
+	query := `DELETE FROM classrooms WHERE id=$1`
+	result, err := m.Conn.ExecContext(ctx, query, id)
+	if err != nil {
+        return err
+    }
+    rows, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+    if rows != 1 {
+        return fmt.Errorf("expected single row affected, got %d rows affected", rows)
+    }
+    return
 }
