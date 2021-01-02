@@ -62,6 +62,7 @@ func (h *UserHandler) FetchUsers(c *gin.Context) {
             ID:     item.ID,
             Name:   item.Name,
             Email:  item.Email,
+            Role:   item.Role,
         }
         data = append(data, user)
     }
@@ -187,6 +188,7 @@ func (h *UserHandler) Show(c *gin.Context) {
         ID: res.ID,
         Name: res.Name,
         Email: res.Email,
+        Role: res.Role,
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
@@ -235,6 +237,7 @@ func (h *UserHandler) Store(c *gin.Context) {
         ID:     u.ID,
         Name:   u.Name,
         Email:  u.Email,
+        Role:   u.Role,
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("create user success", data))
 }
@@ -304,6 +307,7 @@ func (h *UserHandler) Update(c *gin.Context) {
         ID:     u.ID,
         Name:   u.Name,
         Email:  u.Email,
+        Role:   u.Role,
     }
     err = h.userUsecase.Update(c, &user)
     if err != nil {
