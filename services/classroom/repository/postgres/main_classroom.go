@@ -53,10 +53,36 @@ func (m *classroomRepository) fetch(ctx context.Context, query string, args ...i
 	return
 }
 
+func (m *classroomRepository) GetByID(ctx context.Context, id int64) (res domain.Classroom, err error) {
+	query := `SELECT id,name,grade,major_id,created_at,updated_at
+		FROM classrooms WHERE id=$1`
+	
+	list, err := m.fetch(ctx, query, id)
+	if err != nil {
+		return
+	}
+	if len(list) < 1 {
+		res = domain.Classroom{}
+		return 
+	}
+	res = list[0]
+	return
+}
+
 func (m *classroomRepository) Fetch(ctx context.Context) (res []domain.Classroom, err error){
 	query := `SELECT id,name,grade,major_id,created_at,updated_at
 		FROM classrooms`
 	res, err = m.fetch(ctx, query)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (m *classroomRepository) Store(ctx context.Context, c *domain.Classroom) (err error) {
+	query := `INSERT INTO classrooms (name,grade,major_id,created_at,updated_at)
+		VALUES($1,$2,$3,$4,$5) RETURNING id`
+	err = m.Conn.QueryRowContext(ctx, query, c.Name, c.Grade, c.Major.ID, c.CreatedAt, c.UpdatedAt).Scan(&c.ID)
 	if err != nil {
 		return
 	}
