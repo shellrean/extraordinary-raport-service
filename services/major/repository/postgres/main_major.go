@@ -56,3 +56,17 @@ func (m *postgresMajorRepository) Fetch(ctx context.Context) (res []domain.Major
 	}
 	return
 }
+
+func (m *postgresMajorRepository) GetByID(ctx context.Context, id int64) (res domain.Major, err error) {
+	query := `SELECT id,name,created_at,updated_at FROM majors
+		WHERE id = $1`
+	list, err := m.fetch(ctx, query, id)
+	if err != nil {
+		return
+	}
+	if len(list) < 1 {
+		return
+	}
+	res = list[0]
+	return
+}
