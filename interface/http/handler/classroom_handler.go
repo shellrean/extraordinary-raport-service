@@ -35,6 +35,8 @@ func NewClassroomHandler(r *gin.Engine, m domain.ClassroomUsecase, cfg *config.C
 	class.GET("/", handler.Fetch)
 	class.GET("/:id", handler.Show)
 	class.POST("/", handler.Store)
+	class.PUT("/:id", handler.Update)
+	class.DELETE("/:id", handler.Delete)
 }
 
 func (h *classHandler) Fetch(c *gin.Context) {
@@ -151,4 +153,139 @@ func (h *classHandler) Store(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, api.ResponseSuccess("create classroom success", data))
+}
+
+func (h *classHandler) Update(c *gin.Context) {
+	idS := c.Param("id")
+	id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+	}
+	res := domain.Classroom{}
+	res, err = h.classUsecase.GetByID(c, int64(id))
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+		c.JSON(
+			http.StatusBadRequest,
+			api.ResponseError(err.Error(), err_code),
+		)
+		return
+	}
+
+	if res == (domain.Classroom{}) {
+		err_code := helper.GetErrorCode(domain.ErrNotFound)
+		c.JSON(
+			http.StatusBadRequest,
+			api.ResponseError(domain.ErrNotFound.Error(), err_code),
+		)
+		return
+	}
+
+	var cl dto.ClassroomRequest
+	if err := c.ShouldBindJSON(&cl); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+	}
+	validate := validator.New()
+    if err := validate.Struct(cl); err != nil {
+        var reserr []api.ErrorValidation
+
+        errs := err.(validator.ValidationErrors)
+        for _, e := range errs {
+            msg := helper.GetErrorMessage(e)
+            res := api.ErrorValidation{
+                Field:      strings.ToLower(e.Field()),
+                Message:    msg,
+            }
+            reserr = append(reserr, res)
+        }
+        err_code := helper.GetErrorCode(domain.ErrValidation)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseErrorWithData(domain.ErrValidation.Error(), err_code, reserr),
+        )
+        return
+	}
+
+	class := domain.Classroom {
+		ID:			int64(id),
+		Name:		cl.Name,
+		Grade:		cl.Grade,
+	}
+	major := domain.Major {
+		ID:			cl.MajorID,
+	}
+	class.Major = major
+
+	err = h.classUsecase.Update(c, &class)
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+
+	data := dto.ClassroomResponse {
+		ID:			class.ID,
+		Name:		class.Name,
+		Grade:		class.Grade,
+		MajorID:	class.Major.ID,
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("update classroom success", data))
+}
+
+func (h *classHandler) Delete(c *gin.Context) {
+	idS := c.Param("id")
+	id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+	}
+	res := domain.Classroom{}
+	res, err = h.classUsecase.GetByID(c, int64(id))
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+		c.JSON(
+			http.StatusBadRequest,
+			api.ResponseError(err.Error(), err_code),
+		)
+		return
+	}
+
+	if res == (domain.Classroom{}) {
+		err_code := helper.GetErrorCode(domain.ErrNotFound)
+		c.JSON(
+			http.StatusBadRequest,
+			api.ResponseError(domain.ErrNotFound.Error(), err_code),
+		)
+		return
+	}
+
+	err = h.classUsecase.Delete(c, int64(id))
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+		c.JSON(
+			http.StatusBadRequest,
+			api.ResponseError(err.Error(), err_code),
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("delete classroom success", make([]string,0)))
 }
