@@ -22,6 +22,7 @@ func CreateAccessToken(key string, user domain.User, td *domain.Token) (err erro
 	atClaims["authorized"] = true
 	atClaims["access_uuid"] = td.AccessUuid
 	atClaims["user_id"] = user.ID
+	atClaims["role"] = user.Role
 	atClaims["exp"] = td.AtExpires
 	
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
