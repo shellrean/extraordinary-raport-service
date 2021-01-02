@@ -86,3 +86,49 @@ func (u *classroomUsecase) Store(c context.Context, cl *domain.Classroom) (err e
 	}
 	return
 }
+
+func (u *classroomUsecase) Update(c context.Context, cl *domain.Classroom) (err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	var row domain.Major
+	row, err = u.majorRepo.GetByID(ctx, cl.Major.ID)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+	if row == (domain.Major{}) {
+		err = domain.ErrNotFound
+		return
+	}
+
+	cl.UpdatedAt = time.Now()
+	err = u.classRepo.Update(ctx, cl)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+	return
+}
+
+func (u *classroomUsecase) Delete(c context.Context, id int64) (err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	err = u.classRepo.Delete(ctx, id)
+	if err != nil {
+		if (u.cfg.Release) {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	return
+}
