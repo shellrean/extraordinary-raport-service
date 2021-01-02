@@ -28,17 +28,19 @@ func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mdd
         config:         cfg,
         mddl:           mddl,
     }
-    r.Use(handler.mddl.CORS())
-    auth := r.Group("/", handler.mddl.Auth())
 
-    auth.GET("/users", handler.FetchUsers)
-    auth.GET("/users/:id", handler.Show)
-    auth.POST("/users", handler.Store)
-    auth.PUT("/users/:id", handler.Update)
-    auth.DELETE("/users/:id", handler.Delete)
+    user := r.Group("/users")
+    user.Use(handler.mddl.CORS())
+    user.Use(handler.mddl.Auth())
 
-    r.POST("/auth", handler.Autheticate)
-    r.POST("/refresh-token", handler.RefreshToken)
+    user.GET("/", handler.FetchUsers)
+    user.GET("/:id", handler.Show)
+    user.POST("/", handler.Store)
+    user.PUT("/:id", handler.Update)
+    user.DELETE("/:id", handler.Delete)
+
+    r.POST("/auth", handler.mddl.CORS(), handler.Autheticate)
+    r.POST("/refresh-token", handler.mddl.CORS(), handler.RefreshToken)
 }
 
 func (h *UserHandler) FetchUsers(c *gin.Context) {

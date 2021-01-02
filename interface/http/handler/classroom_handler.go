@@ -2,8 +2,11 @@ package handler
 
 import (
 	"net/http"
+	"strings"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 
 	"github.com/shellrean/extraordinary-raport/config"
 	"github.com/shellrean/extraordinary-raport/domain"
@@ -25,10 +28,13 @@ func NewClassroomHandler(r *gin.Engine, m domain.ClassroomUsecase, cfg *config.C
 		config:				cfg,
 		mddl:				mddl,
 	}
-	r.Use(handler.mddl.CORS())
-	auth := r.Group("/", handler.mddl.Auth())
-	
-	auth.GET("/classrooms", handler.Fetch)
+	class := r.Group("/classrooms")
+	class.Use(handler.mddl.CORS())
+	class.Use(handler.mddl.Auth())
+
+	class.GET("/", handler.Fetch)
+	class.GET("/:id", handler.Show)
+	class.POST("/", handler.Store)
 }
 
 func (h *classHandler) Fetch(c *gin.Context) {
@@ -54,4 +60,95 @@ func (h *classHandler) Fetch(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
+}
+
+func (h *classHandler) Show(c *gin.Context) {
+	idS := c.Param("id")
+	id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+	}
+	res := domain.Classroom{}
+	res, err = h.classUsecase.GetByID(c, int64(id))
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+		c.JSON(
+			http.StatusBadRequest,
+			api.ResponseError(err.Error(), err_code),
+		)
+		return
+	}
+	
+	data := dto.ClassroomResponse {
+		ID:			res.ID,
+		Name:		res.Name,
+		Grade:		res.Grade,
+		MajorID:	res.Major.ID,
+	}
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
+}
+
+func (h *classHandler) Store(c *gin.Context) {
+	var cl dto.ClassroomRequest
+	if err := c.ShouldBindJSON(&cl); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+	}
+	validate := validator.New()
+    if err := validate.Struct(cl); err != nil {
+        var reserr []api.ErrorValidation
+
+        errs := err.(validator.ValidationErrors)
+        for _, e := range errs {
+            msg := helper.GetErrorMessage(e)
+            res := api.ErrorValidation{
+                Field:      strings.ToLower(e.Field()),
+                Message:    msg,
+            }
+            reserr = append(reserr, res)
+        }
+        err_code := helper.GetErrorCode(domain.ErrValidation)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseErrorWithData(domain.ErrValidation.Error(), err_code, reserr),
+        )
+        return
+	}
+
+	class := domain.Classroom {
+		Name:		cl.Name,
+		Grade:		cl.Grade,
+	}
+	major := domain.Major {
+		ID:			cl.MajorID,
+	}
+	class.Major = major
+	
+	err := h.classUsecase.Store(c, &class)
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+
+	data := dto.ClassroomResponse {
+		ID:			class.ID,
+		Name:		class.Name,
+		Grade:		class.Grade,
+		MajorID:	class.Major.ID,
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("create classroom success", data))
 }

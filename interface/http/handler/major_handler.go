@@ -25,10 +25,11 @@ func NewMajorHandler(r *gin.Engine, m domain.MajorUsecase, cfg *config.Config, m
         config:         cfg,
         mddl:           mddl,
 	}
-	r.Use(handler.mddl.CORS())
-	r.Use(handler.mddl.Auth())
+	major := r.Group("/majors")
+	major.Use(handler.mddl.CORS())
+	major.Use(handler.mddl.Auth())
 
-	r.GET("/majors", handler.Fetch)
+	major.GET("/", handler.Fetch)
 }
 
 func (h *majorHandler) Fetch(c *gin.Context) {
