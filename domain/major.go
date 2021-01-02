@@ -2,7 +2,7 @@ package domain
 
 import (
 	"time"
-	// "context"
+	"context"
 )
 
 type Major struct {
@@ -12,3 +12,10 @@ type Major struct {
 	UpdatedAt 	time.Time 	`json:"updated_at"`
 }
 
+type MajorRepository interface {
+	Fetch(ctx context.Context) ([]Major, error)
+}
+
+type MajorUsecase interface {
+	Fetch(ctx context.Context) ([]Major, error)
+}
