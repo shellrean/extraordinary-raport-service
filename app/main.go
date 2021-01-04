@@ -23,6 +23,7 @@ import (
     _classroomUsecase "github.com/shellrean/extraordinary-raport/services/classroom/usecase"
     _majorRepo "github.com/shellrean/extraordinary-raport/services/major/repository/postgres"
     _majorUsecase "github.com/shellrean/extraordinary-raport/services/major/usecase"
+    _settingRepo "github.com/shellrean/extraordinary-raport/services/setting/repository/postgres"
     _classroomAcademicRepo "github.com/shellrean/extraordinary-raport/services/classroom_academic/repository/postgres"
     _classroomAcademicUsecase "github.com/shellrean/extraordinary-raport/services/classroom_academic/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
@@ -95,8 +96,17 @@ func main() {
     classroomRepo := _classroomRepo.NewPostgresClassroomRepository(db)
     classroomUsecase := _classroomUsecase.NewClassroomUsecase(classroomRepo, majorRepo, timeoutContext, cfg)
 
+    settingRepo := _settingRepo.NewPostgresSettingRepository(db)
+
     classroomAcademicRepo := _classroomAcademicRepo.NewPostgresClassroomAcademicRepository(db)
-    classroomAcademicUsecase := _classroomAcademicUsecase.NewClassroomAcademicUsecase(classroomAcademicRepo, timeoutContext, cfg)
+    classroomAcademicUsecase := _classroomAcademicUsecase.NewClassroomAcademicUsecase(
+        classroomAcademicRepo, 
+        settingRepo, 
+        userRepo,
+        classroomRepo,
+        timeoutContext, 
+        cfg,
+    )
 
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
