@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 	"strconv"
+	"fmt"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -70,6 +71,28 @@ func (u *classroomAcademicUsecase) Store(c context.Context, ca *domain.Classroom
 		return
 	}
 
+	id, err := strconv.Atoi(res.Value)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	exist, err := u.classAcademicRepo.GetByAcademicAndClass(ctx, int64(id), ca.Classroom.ID)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if exist != (domain.ClassroomAcademic{}) {
+		return fmt.Errorf("classroom for this academic already exist")
+	}
+
 	user, err := u.userRepo.GetByID(ctx, ca.Teacher.ID)
 	if err != nil {
 		if u.cfg.Release {
@@ -98,21 +121,13 @@ func (u *classroomAcademicUsecase) Store(c context.Context, ca *domain.Classroom
 		return
 	}
 
-
-	id, err := strconv.Atoi(res.Value)
-	if err != nil {
-		if u.cfg.Release {
-			err = domain.ErrServerError
-			return
-		}
-		return
-	}
-
 	academic := domain.Academic{
 		ID: 	int64(id),
 	}
 
 	ca.Academic = academic
+	ca.CreatedAt = time.Now()
+	ca.UpdatedAt = time.Now()
 	err = u.classAcademicRepo.Store(ctx, ca)
 	if err != nil {
 		if u.cfg.Release {
