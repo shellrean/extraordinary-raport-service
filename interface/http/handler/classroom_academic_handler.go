@@ -112,7 +112,7 @@ func (h *classAcademicHandler) Store(c *gin.Context) {
 	if err != nil {
 		err_code := helper.GetErrorCode(err)
         c.JSON(
-            http.StatusBadRequest,
+            api.GetHttpStatusCode(err),
             api.ResponseError(err.Error(), err_code),
         )
         return
