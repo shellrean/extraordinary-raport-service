@@ -81,7 +81,7 @@ func (m *classroomAcademicRepository) Store(ctx context.Context, ca *domain.Clas
 }
 
 func (m *classroomAcademicRepository) GetByAcademicAndClass(ctx context.Context, a int64, c int64) (res domain.ClassroomAcademic, err error) {
-	query := `SELECT id,academic_id,classroom_id, teacher_id,createdAt,updated_at
+	query := `SELECT id,academic_id,classroom_id, teacher_id,created_at,updated_at
 		FROM classroom_academics WHERE academic_id=$1 AND classroom_id=$2`
 
 	list, err := m.fetch(ctx, query, a, c)
