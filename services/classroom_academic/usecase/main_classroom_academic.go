@@ -41,7 +41,30 @@ func (u *classroomAcademicUsecase) Fetch(c context.Context) (res []domain.Classr
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
-	res, err = u.classAcademicRepo.Fetch(ctx)
+	sett, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if sett == (domain.Setting{}) {
+		err = domain.ErrNotFound
+		return
+	}
+
+	id, err := strconv.Atoi(sett.Value)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	res, err = u.classAcademicRepo.Fetch(ctx, int64(id))
 	if err != nil {
 		if u.cfg.Release {
 			err = domain.ErrServerError

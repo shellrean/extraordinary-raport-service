@@ -15,7 +15,7 @@ type ClassroomAcademic struct {
 }
 
 type ClassroomAcademicRepository interface {
-	Fetch(ctx context.Context) ([]ClassroomAcademic, error)
+	Fetch(ctx context.Context, id int64) ([]ClassroomAcademic, error)
 	Store(ctx context.Context, ca *ClassroomAcademic) (error)
 	GetByAcademicAndClass(ctx context.Context, a int64, c int64) (ClassroomAcademic, error)
 }
