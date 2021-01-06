@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"context"
+	"fmt"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 )
@@ -64,6 +65,7 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res 
 	return
 }
 
+
 func (m *classroomAcademicRepository) Store(ctx context.Context, ca *domain.ClassroomAcademic) (err error) {
 	query := `INSERT INTO classroom_academics (academic_id, classroom_id, teacher_id, created_at, updated_at)
 		VALUES($1,$2,$3,$4,$5) RETURNING id`
@@ -92,5 +94,63 @@ func (m *classroomAcademicRepository) GetByAcademicAndClass(ctx context.Context,
 		return domain.ClassroomAcademic{}, err
 	}
 	res = list[0]
+	return
+}
+
+func (m *classroomAcademicRepository) GetByID(ctx context.Context, id int64) (res domain.ClassroomAcademic, err error) {
+	query := `SELECT id,academic_id,classroom_id, teacher_id,created_at,updated_at
+		FROM classroom_academics WHERE id=$1`
+
+	list, err := m.fetch(ctx, query, id)
+	if err != nil {
+		return
+	}
+	if len(list) < 1 {
+		return domain.ClassroomAcademic{}, err
+	}
+	res = list[0]
+	return
+}
+
+func (m *classroomAcademicRepository) Update(ctx context.Context, ca *domain.ClassroomAcademic) (err error) {
+	query := `UPDATE classroom_academics SET academic_id=$1, classroom_id=$2, teacher_id=$3, updated_at=$4
+		WHERE id=$5`
+	result, err := m.Conn.ExecContext(ctx, query, 
+		ca.Academic.ID,
+		ca.Classroom.ID,
+		ca.Teacher.ID,
+		ca.UpdatedAt,
+		ca.ID,
+	)
+	if err != nil {
+		return
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+
+	if rows != 1 {
+		return fmt.Errorf("expected single row affected, got %d rows affected", rows)
+	}
+	return
+}
+
+func (m *classroomAcademicRepository) Delete(ctx context.Context, id int64) (err error) {
+	query := `DELETE FROM classroom_academics WHERE id=$1`
+	result, err := m.Conn.ExecContext(ctx, query, id)
+	if err != nil {
+		return
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+
+	if rows != 1 {
+		return fmt.Errorf("expected single row affected, got %d rows affected", rows) 
+	}
 	return
 }
