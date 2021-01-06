@@ -76,6 +76,21 @@ func (u *classroomAcademicUsecase) Fetch(c context.Context) (res []domain.Classr
 	return
 }
 
+func (u *classroomAcademicUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomAcademic, err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+	
+	res, err = u.classAcademicRepo.GetByID(ctx, id)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+	return
+}
+
 func (u *classroomAcademicUsecase) Store(c context.Context, ca *domain.ClassroomAcademic) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
@@ -157,6 +172,95 @@ func (u *classroomAcademicUsecase) Store(c context.Context, ca *domain.Classroom
 			err = domain.ErrServerError
 			return
 		}
+		return
+	}
+	return
+}
+
+func (u *classroomAcademicUsecase) Update(c context.Context, ca *domain.ClassroomAcademic) (err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	res, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if res == (domain.Setting{}) {
+		err = domain.ErrNotFound
+		return
+	}
+
+	id, err := strconv.Atoi(res.Value)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	exist, err := u.classAcademicRepo.GetByAcademicAndClass(ctx, int64(id), ca.Classroom.ID)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if exist != (domain.ClassroomAcademic{}) {
+		if exist.ID != ca.ID {
+			return fmt.Errorf("classroom for this academic already exist")
+		}
+	}
+
+	user, err := u.userRepo.GetByID(ctx, ca.Teacher.ID)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if user == (domain.User{}) {
+		err = domain.ErrNotFound
+		return
+	}
+
+	class, err := u.classRepo.GetByID(ctx, ca.Classroom.ID)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if class == (domain.Classroom{}) {
+		err = domain.ErrNotFound
+		return
+	}
+
+	ca.UpdatedAt = time.Now()
+	err = u.classAcademicRepo.Update(ctx, ca)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (u *classroomAcademicUsecase) Delete(c context.Context, id int64) (err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	err = u.classAcademicRepo.Delete(ctx, id)
+	if err != nil {
 		return
 	}
 	return
