@@ -17,10 +17,16 @@ type ClassroomAcademic struct {
 type ClassroomAcademicRepository interface {
 	Fetch(ctx context.Context, id int64) ([]ClassroomAcademic, error)
 	Store(ctx context.Context, ca *ClassroomAcademic) (error)
+	GetByID(ctx context.Context, id int64) (ClassroomAcademic, error)
 	GetByAcademicAndClass(ctx context.Context, a int64, c int64) (ClassroomAcademic, error)
+	Update(ctx context.Context, ca *ClassroomAcademic) (error)
+	Delete(ctx context.Context, id int64) (error)
 }
 
 type ClassroomAcademicUsecase interface {
 	Fetch(ctx context.Context) ([]ClassroomAcademic, error)
+	GetByID(ctx context.Context, id int64) (ClassroomAcademic, error)
 	Store(ctx context.Context, ca *ClassroomAcademic) (error)
+	Update(ctx context.Context, ca *ClassroomAcademic) (error)
+	Delete(ctx context.Context, id int64) (error)
 }
