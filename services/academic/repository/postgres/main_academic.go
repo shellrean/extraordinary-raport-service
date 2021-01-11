@@ -75,7 +75,7 @@ func (m *postgresAcademicRepository) GetByID(ctx context.Context, id int64) (res
 	return
 }
 
-func (m *postgresAcademicRepository) GetByYearAndSemester(ctx context.Context, year int, sem int) (res domain.Academic, err error) {
+func (m *postgresAcademicRepository) GetByYearAndSemester(ctx context.Context, year string, sem int) (res domain.Academic, err error) {
 	query := `SELECT id,name,semester,created_at,updated_at
 		FROM academics WHERE name=$1 AND semester=$2`
 	list, err := m.fetch(ctx, query, year, sem)
