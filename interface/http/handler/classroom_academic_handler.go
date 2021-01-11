@@ -34,7 +34,6 @@ func NewClassAcademicHandler(
 		mddl:						mddl,
 	}
 	ca := r.Group("/classroom-academics")
-	ca.Use(handler.mddl.CORS())
 	ca.Use(handler.mddl.Auth())
 
 	ca.GET("/", handler.Fetch)

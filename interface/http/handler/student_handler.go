@@ -28,7 +28,6 @@ func NewStudentHandler(r *gin.Engine, m domain.StudentUsecase, cfg *config.Confi
 		mddl:	mddl,
 	}
     student := r.Group("/students")
-    student.Use(handler.mddl.CORS())
     student.Use(handler.mddl.Auth())
 
 	student.GET("/", handler.Index)

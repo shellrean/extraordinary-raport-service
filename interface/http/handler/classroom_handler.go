@@ -29,7 +29,6 @@ func NewClassroomHandler(r *gin.Engine, m domain.ClassroomUsecase, cfg *config.C
 		mddl:				mddl,
 	}
 	class := r.Group("/classrooms")
-	class.Use(handler.mddl.CORS())
 	class.Use(handler.mddl.Auth())
 
 	class.GET("/", handler.Fetch)

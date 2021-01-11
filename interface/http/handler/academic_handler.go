@@ -26,7 +26,6 @@ func NewAcademicHandler(r *gin.Engine, m domain.AcademicUsecase, cfg *config.Con
 		mddl:					mddl,
 	}
 	academic := r.Group("/academics")
-	academic.Use(handler.mddl.CORS())
 	academic.Use(handler.mddl.Auth())
 	
 	academic.GET("/", handler.Fetch)
