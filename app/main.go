@@ -116,6 +116,8 @@ func main() {
 
     mddl := _middleware.InitMiddleware(cfg)
 
+    r.Use(mddl.CORS())
+
     httpHandler.NewUserHandler(r, userUsecase, cfg, mddl)
     httpHandler.NewStudentHandler(r, studentUsecase, cfg, mddl)
     httpHandler.NewAcademicHandler(r, academicUsecase, cfg, mddl)
