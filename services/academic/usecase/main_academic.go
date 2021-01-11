@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 	"time"
-	"strconv"
+	"fmt"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -44,14 +44,16 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 	defer cancel()
 
 	currentTime := time.Now() 
-	year := currentTime.Year()
 	month := currentTime.Month()
 
 	var semester uint8
+	var year string
 	if int(month) >= 6 {
-		semester = 2
-	} else {
+		year = fmt.Sprintf("%d/%d", currentTime.Year(), currentTime.AddDate(1,0,0).Year())
 		semester = 1
+	} else {
+		year = fmt.Sprintf("%d/%d", currentTime.Year(), currentTime.AddDate(-1,0,0).Year())
+		semester = 2
 	}
 	list, err := u.academicRepo.GetByYearAndSemester(ctx, year, int(semester))
 	if err != nil {
@@ -68,7 +70,7 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 	}
 
 	res = domain.Academic{
-		Name:	strconv.Itoa(year),
+		Name:	year,
 		Semester: semester,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
