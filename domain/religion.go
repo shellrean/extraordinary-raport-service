@@ -1,6 +1,10 @@
 package domain
 
+import "time"
+
 type Religion struct {
-	ID 			int64		`json:"id"`
-	Name		string 		`json:"name"`
+	ID 			int64	
+	Name		string 		
+	CreatedAt 	time.Time 	
+	UpdatedAt 	time.Time
 }
