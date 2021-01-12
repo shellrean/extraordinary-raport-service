@@ -6,37 +6,37 @@ import (
 )
 
 type Parent struct {
-	Name 			string 		`json:"name"`
-	Address 		string 		`json:"address"`
-	Profession		string 		`json:"profession"`
-	Telp			string 		`json:"telp"`
+	Name 			string
+	Address 		string
+	Profession		string
+	Telp			string
 }
 
 type Familly struct {
-	Status			string 		`json:"status"`
-	Order			string 		`json:"order"`
+	Status			string
+	Order			string
 }
 
 type Student struct {
-	ID				int64		`json:"id"`
-	SRN				string 		`json:"srn" validate:"required"`
-	NSRN			string 		`json:"nsrn" validate:"required"`
-	Name			string 		`json:"name" validate:"required"`
-	Gender			string 		`json:"gender"`
-	BirthPlace		string 		`json:"birth_place"`
-	BirthDate		string		`json:"birth_date"`
-	Religion		Religion	`json:"religion"`
-	Address			string 		`json:"address"`
-	Telp			string 		`json:"telp"`
-	SchoolBefore	string 		`json:"school_before"`
-	AcceptedGrade	string 		`json:"accepted_grade"`
-	AcceptedDate	string 		`json:"accepted_date"`
-	Familly			Familly		`json:"familly"`
-	Father 			Parent		`json:"father"`
-	Mother			Parent		`json:"mother"`
-	Guardian		Parent		`json:"guardian"`
-	CreatedAt		time.Time 	`json:"created_at"`
-	UpdatedAt		time.Time 	`json:"updated_at"`
+	ID				int64
+	SRN				string
+	NSRN			string
+	Name			string 
+	Gender			string
+	BirthPlace		string
+	BirthDate		string
+	Religion		Religion
+	Address			string
+	Telp			string
+	SchoolBefore	string
+	AcceptedGrade	string
+	AcceptedDate	string
+	Familly			Familly
+	Father 			Parent
+	Mother			Parent
+	Guardian		Parent
+	CreatedAt		time.Time
+	UpdatedAt		time.Time
 }
 
 type StudentRepository interface {
