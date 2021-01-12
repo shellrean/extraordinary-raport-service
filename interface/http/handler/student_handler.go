@@ -10,7 +10,8 @@ import (
 
 	"github.com/shellrean/extraordinary-raport/config"
 	"github.com/shellrean/extraordinary-raport/domain"
-	"github.com/shellrean/extraordinary-raport/entities/helper"
+    "github.com/shellrean/extraordinary-raport/entities/DTO"
+    "github.com/shellrean/extraordinary-raport/entities/helper"
 	"github.com/shellrean/extraordinary-raport/interface/http/api"
 	"github.com/shellrean/extraordinary-raport/interface/http/middleware"
 )
@@ -48,14 +49,48 @@ func (h *studentHandler) Index(c *gin.Context) {
 			api.ResponseError(err.Error(), error_code),
 		)
 		return
-	}
+    }
+    
+    var data []dto.StudentResponse
+    for _, item := range res {
+        student := dto.StudentResponse{
+            ID:             item.ID,
+            SRN:            item.SRN,
+            NSRN:           item.NSRN,
+            Name:           item.Name,
+            Gender:         item.Gender,
+            BirthPlace:     item.BirthPlace,
+            BirthDate:      item.BirthDate,
+            ReligionID:     item.Religion.ID,
+            Address:        item.Address,
+            Telp:           item.Telp,
+            SchoolBefore:   item.SchoolBefore,
+            AcceptedGrade:  item.AcceptedGrade,
+            AcceptedDate:   item.AcceptedDate,
+            FamillyStatus:  item.Familly.Status,
+            FamillyOrder:   item.Familly.Order,
+            FatherName:     item.Father.Name,
+            FatherAddress:  item.Father.Address,
+            FatherProfession: item.Father.Profession,
+            FatherTelp:     item.Father.Telp,
+            MotherName:     item.Mother.Name,
+            MotherAddress:  item.Mother.Address,
+            MotherProfession: item.Mother.Profession,
+            MotherTelp:     item.Mother.Telp,
+            GrdName:        item.Guardian.Name,
+            GrdAddress:     item.Guardian.Address,
+            GrdProfession:  item.Guardian.Profession,
+            GrdTelp:        item.Guardian.Telp,
+        }
+        data = append(data, student)
+    }
 
 	c.Header("X-Cursor", nextCursor)
-	c.JSON(http.StatusOK, api.ResponseSuccess("success",res))
+	c.JSON(http.StatusOK, api.ResponseSuccess("success",data))
 }
 
 func (h *studentHandler) Store(c *gin.Context) {
-	var u domain.Student
+	var u dto.StudentResponse
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
@@ -83,9 +118,29 @@ func (h *studentHandler) Store(c *gin.Context) {
             api.ResponseErrorWithData(domain.ErrValidation.Error(), err_code, reserr),
         )
         return
-	}
+    }
+    
+    student := domain.Student {
+        ID:             u.ID,     
+        SRN:            u.SRN,
+        NSRN:           u.NSRN,			
+        Name:           u.Name,
+        Gender:         u.Gender,
+        BirthPlace:     u.BirthPlace,
+        BirthDate:      u.BirthDate,
+        Religion:       domain.Religion{ID: u.ReligionID},
+        Address:        u.Address,
+        Telp:           u.Telp,
+        SchoolBefore:   u.SchoolBefore,
+        AcceptedGrade:  u.AcceptedGrade,
+        AcceptedDate:   u.AcceptedDate,
+        Familly:        domain.Familly{Status: u.FamillyStatus, Order: u.FamillyOrder},
+        Father:         domain.Parent{Name: u.FatherName, Address: u.FatherAddress, Profession: u.FatherProfession, Telp: u.FatherTelp},
+        Mother:         domain.Parent{Name: u.MotherName, Address: u.MotherAddress, Profession: u.MotherProfession, Telp: u.MotherTelp},			
+        Guardian:       domain.Parent{Name: u.GrdName, Address: u.GrdAddress, Profession: u.GrdProfession, Telp: u.GrdTelp},
+    }
 	
-	err := h.studentUsecase.Store(c, &u)
+	err := h.studentUsecase.Store(c, &student)
     if err != nil {
         err_code := helper.GetErrorCode(err)
         c.JSON(
@@ -94,6 +149,7 @@ func (h *studentHandler) Store(c *gin.Context) {
         )
         return
     }
+    u.ID = student.ID
     c.JSON(http.StatusOK, api.ResponseSuccess("create student success", u))
 }
 
@@ -127,7 +183,7 @@ func (h *studentHandler) Update(c *gin.Context) {
         return
     }
 	
-	var u domain.Student
+	var u dto.StudentResponse
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
@@ -156,8 +212,27 @@ func (h *studentHandler) Update(c *gin.Context) {
         )
         return
 	}
-	u.ID = int64(id)
-	err = h.studentUsecase.Update(c, &u)
+    u.ID = int64(id)
+    student := domain.Student {
+        ID:             u.ID,     
+        SRN:            u.SRN,
+        NSRN:           u.NSRN,			
+        Name:           u.Name,
+        Gender:         u.Gender,
+        BirthPlace:     u.BirthPlace,
+        BirthDate:      u.BirthDate,
+        Religion:       domain.Religion{ID: u.ReligionID},
+        Address:        u.Address,
+        Telp:           u.Telp,
+        SchoolBefore:   u.SchoolBefore,
+        AcceptedGrade:  u.AcceptedGrade,
+        AcceptedDate:   u.AcceptedDate,
+        Familly:        domain.Familly{Status: u.FamillyStatus, Order: u.FamillyOrder},
+        Father:         domain.Parent{Name: u.FatherName, Address: u.FatherAddress, Profession: u.FatherProfession, Telp: u.FatherTelp},
+        Mother:         domain.Parent{Name: u.MotherName, Address: u.MotherAddress, Profession: u.MotherProfession, Telp: u.MotherTelp},			
+        Guardian:       domain.Parent{Name: u.GrdName, Address: u.GrdAddress, Profession: u.GrdProfession, Telp: u.GrdTelp},
+    }
+	err = h.studentUsecase.Update(c, &student)
     if err != nil {
         err_code := helper.GetErrorCode(err)
         c.JSON(
