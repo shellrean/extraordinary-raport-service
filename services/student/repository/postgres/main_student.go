@@ -149,7 +149,7 @@ func (m *postgresStudentRepository) Store(ctx context.Context, t *domain.Student
 }
 
 func (m *postgresStudentRepository) Update(ctx context.Context, t *domain.Student) (error) {
-	query := `UPDATE users SET (srn,nsrn,name,gender,birth_place,birth_date,religion_id,address,telp,
+	query := `UPDATE students SET (srn,nsrn,name,gender,birth_place,birth_date,religion_id,address,telp,
 		school_before,accepted_grade,accepted_date,familly_status,familly_order,father_name,father_address,father_profession,
 		father_telp,mother_name,mother_address,mother_profession,mother_telp,guardian_name,guardian_address,guardian_profession,
 		guardian_telp,updated_at) = ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) WHERE id=$28`
