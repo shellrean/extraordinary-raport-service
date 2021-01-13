@@ -105,3 +105,20 @@ func (m *subjectRepository) Update(ctx context.Context, s *domain.Subject) (err 
     }
     return
 }
+
+func (m *subjectRepository) Delete(ctx context.Context, id int64) (err error) {
+    query := `DELETE FROM subjects WHERE id=$1`
+    
+    result, err := m.Conn.ExecContext(ctx, query, id)
+    if err != nil {
+        return err
+    }
+    rows, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+    if rows != 1 {
+        return fmt.Errorf("expected single row affected, got %d rows affected", rows)
+    }
+    return
+}
