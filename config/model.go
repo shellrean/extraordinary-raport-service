@@ -28,6 +28,17 @@ type Config struct {
         } `yaml:"timeout"`
     } `yaml:"server"`
 
+    Security struct {
+        // CORS Configuration
+        CORS struct {
+            // Host that you allowed to access the api
+            Host    string      `yaml:"host"`
+            
+            // Method that allowed to access the api
+            Method  string      `yaml:"method"`
+        } `yaml:"cors"`
+    } `yaml:"security"`
+
     Database struct {
         // Username is the database machine user
         Username    string  `yaml:"username"`
