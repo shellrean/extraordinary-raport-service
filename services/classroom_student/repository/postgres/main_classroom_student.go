@@ -1,6 +1,7 @@
 package postgres
 
 import (
+    "fmt"
     "context"
 	"database/sql"
 
@@ -86,5 +87,23 @@ func (m *csRepository) Store(ctx context.Context, cs *domain.ClassroomStudent) (
         return err
     }
     
+    return
+}
+
+func (m *csRepository) Update(ctx context.Context, cs *domain.ClassroomStudent) (err error) {
+    query := `UPDATE classroom_students SET classroom_academic_id=$1, student_id=$2, updated_at=$3
+        WHERE id=$4`
+    
+    result, err := m.Conn.ExecContext(ctx, query, cs.ClassroomAcademic.ID, cs.Student.ID, cs.UpdatedAt, cs.ID)
+    if err != nil {
+        return err
+    }
+    rows, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+    if rows != 1 {
+        return fmt.Errorf("expected single row affected, got %d rows affected", rows)
+    }
     return
 }
