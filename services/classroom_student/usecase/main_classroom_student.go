@@ -74,3 +74,20 @@ func (u *csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomSt
     }
     return
 }
+
+func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    cs.CreatedAt = time.Now()
+    cs.UpdatedAt = time.Now()
+
+    if err = u.csRepo.Store(ctx, cs); err != nil {
+        if u.cfg.Release {
+            return domain.ErrServerError
+        }
+        return
+    }
+
+    return
+}
