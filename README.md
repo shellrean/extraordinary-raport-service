@@ -22,6 +22,11 @@ server:
     read: 15
     write: 10
     idle: 5
+# Security config
+security:
+  cors: 
+    host: "*"
+    method: "POST, OPTIONS, GET, PUT, DELETE"
 # Database config
 database:
   username: "postgres"
