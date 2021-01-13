@@ -2,9 +2,11 @@ package handler
 
 import (
     "net/http"
+    "strings"
     "strconv"
 
     "github.com/gin-gonic/gin"
+    "github.com/go-playground/validator/v10"
 
     "github.com/shellrean/extraordinary-raport/config"
     "github.com/shellrean/extraordinary-raport/domain"
@@ -32,6 +34,7 @@ func NewSubjectHandler(r *gin.Engine, m domain.SubjectUsecase, cfg *config.Confi
 
     subject.GET("/", handler.Fetch)
     subject.GET("/:id", handler.Show)
+    subject.POST("/", handler.Store)
 }
 
 func (h *subjectHandler) Fetch(c *gin.Context) {
@@ -90,4 +93,54 @@ func (h *subjectHandler) Show(c *gin.Context) {
         Type: res.Type,
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
+}
+
+
+func (h *subjectHandler) Store(c *gin.Context) {
+    var u dto.SubjectResponse
+    if err := c.ShouldBindJSON(&u); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+    }
+    validate := validator.New()
+    if err := validate.Struct(u); err != nil {
+        var reserr []api.ErrorValidation
+
+        errs := err.(validator.ValidationErrors)
+        for _, e := range errs {
+            msg := helper.GetErrorMessage(e)
+            res := api.ErrorValidation{
+                Field:      strings.ToLower(e.Field()),
+                Message:    msg,
+            }
+            reserr = append(reserr, res)
+        }
+        err_code := helper.GetErrorCode(domain.ErrValidation)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseErrorWithData(domain.ErrValidation.Error(), err_code, reserr),
+        )
+        return
+    }
+
+    subject := domain.Subject{
+        Name:   u.Name,
+        Type:   u.Type,
+    }
+
+    err := h.subjectUsecase.Store(c, &subject)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    u.ID = subject.ID
+    c.JSON(http.StatusOK, api.ResponseSuccess("create subject success", u))
 }
