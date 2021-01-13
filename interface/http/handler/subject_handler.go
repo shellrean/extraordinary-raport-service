@@ -30,7 +30,8 @@ func NewSubjectHandler(r *gin.Engine, m domain.SubjectUsecase, cfg *config.Confi
 	subject := r.Group("/subjects")
 	subject.Use(handler.mddl.Auth())
 
-	subject.GET("/", handler.Fetch)
+    subject.GET("/", handler.Fetch)
+    subject.GET("/:id", handler.Show)
 }
 
 func (h *subjectHandler) Fetch(c *gin.Context) {
@@ -60,4 +61,33 @@ func (h *subjectHandler) Fetch(c *gin.Context) {
 
     c.Header("X-Cursor", nextCursor)
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
+}
+
+func (h *subjectHandler) Show(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    res := domain.Subject{}
+    res, err = h.subjectUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    data := dto.SubjectResponse {
+        ID: res.ID,
+        Name: res.Name,
+        Type: res.Type,
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
