@@ -57,3 +57,18 @@ func (m *subjectRepository) Fetch(ctx context.Context, cursor int64, num int64) 
 	}
 	return
 }
+
+func (m *subjectRepository) GetByID(ctx context.Context, id int64) (res domain.Subject, err error) {
+    query := `SELECT id,name,type,created_at,updated_at
+        FROM subjects WHERE id = $1`
+
+    list, err := m.fetch(ctx, query, id)
+    if err != nil {
+        return domain.Subject{}, err
+    }
+    if len(list) < 1 {
+        return domain.Subject{}, err
+    }
+    res = list[0]
+    return
+}
