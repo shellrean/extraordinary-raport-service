@@ -72,3 +72,18 @@ func (m *subjectRepository) GetByID(ctx context.Context, id int64) (res domain.S
     res = list[0]
     return
 }
+
+func (m *subjectRepository) Store(ctx context.Context, s *domain.Subject) (err error) {
+    query := `INSERT INTO subjects (name,type,created_at,updated_at)
+        VALUES($1,$2,$3,$4) RETURNING id`
+    err = m.Conn.QueryRowContext(ctx, query, 
+        s.Name,
+        s.Type,
+        s.CreatedAt,
+        s.UpdatedAt,
+    ).Scan(&s.ID)
+    if err != nil {
+        return
+    }
+    return
+}
