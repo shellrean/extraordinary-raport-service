@@ -93,3 +93,20 @@ func (u *subjectUsecase) Store(c context.Context, s *domain.Subject) (err error)
     }
     return
 }
+
+func (u *subjectUsecase) Update(c context.Context, s *domain.Subject) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    s.UpdatedAt = time.Now()
+
+    err = u.subjectRepo.Update(ctx, s)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    return 
+}
