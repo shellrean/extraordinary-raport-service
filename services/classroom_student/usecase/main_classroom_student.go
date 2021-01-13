@@ -107,3 +107,17 @@ func (u *csUsecase) Update(c context.Context, cs *domain.ClassroomStudent) (err 
 
     return
 }
+
+func (u *csUsecase) Delete(c context.Context, id int64) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    err = u.csRepo.Delete(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            return domain.ErrServerError
+        }
+        return
+    }
+    return
+}
