@@ -35,6 +35,7 @@ func NewSubjectHandler(r *gin.Engine, m domain.SubjectUsecase, cfg *config.Confi
     subject.GET("/", handler.Fetch)
     subject.GET("/:id", handler.Show)
     subject.POST("/", handler.Store)
+    subject.PUT("/:id", handler.Update)
 }
 
 func (h *subjectHandler) Fetch(c *gin.Context) {
@@ -143,4 +144,83 @@ func (h *subjectHandler) Store(c *gin.Context) {
     }
     u.ID = subject.ID
     c.JSON(http.StatusOK, api.ResponseSuccess("create subject success", u))
+}
+
+func (h *subjectHandler) Update(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    res, err := h.subjectUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    if res == (domain.Subject{}) {
+        err_code := helper.GetErrorCode(domain.ErrNotFound)
+        c.JSON(
+            api.GetHttpStatusCode(domain.ErrNotFound),
+            api.ResponseError(domain.ErrNotFound.Error(), err_code),
+        )
+        return
+    }
+
+    var u dto.SubjectResponse
+    if err := c.ShouldBindJSON(&u); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+    }
+    validate := validator.New()
+    if err := validate.Struct(u); err != nil {
+        var reserr []api.ErrorValidation
+
+        errs := err.(validator.ValidationErrors)
+        for _, e := range errs {
+            msg := helper.GetErrorMessage(e)
+            res := api.ErrorValidation{
+                Field:      strings.ToLower(e.Field()),
+                Message:    msg,
+            }
+            reserr = append(reserr, res)
+        }
+        err_code := helper.GetErrorCode(domain.ErrValidation)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseErrorWithData(domain.ErrValidation.Error(), err_code, reserr),
+        )
+        return
+    }
+    u.ID = int64(id)
+
+    subject := domain.Subject{
+        ID:     u.ID,
+        Name:   u.Name,
+        Type:   u.Type,
+    }
+
+    err = h.subjectUsecase.Update(c, &subject)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("update subject success", u))
 }
