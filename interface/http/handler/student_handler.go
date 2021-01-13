@@ -31,9 +31,11 @@ func NewStudentHandler(r *gin.Engine, m domain.StudentUsecase, cfg *config.Confi
     student := r.Group("/students")
     student.Use(handler.mddl.Auth())
 
-	student.GET("/", handler.Index)
+    student.GET("/", handler.Index)
+    student.GET("/:id", handler.Show)
 	student.POST("/", handler.Store)
-	student.PUT("/:id", handler.Update)
+    student.PUT("/:id", handler.Update)
+    student.DELETE("/:id", handler.Delete)
 }
 
 func (h *studentHandler) Index(c *gin.Context) {
@@ -87,6 +89,69 @@ func (h *studentHandler) Index(c *gin.Context) {
 
 	c.Header("X-Cursor", nextCursor)
 	c.JSON(http.StatusOK, api.ResponseSuccess("success",data))
+}
+
+func (h *studentHandler) Show(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    res, err := h.studentUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    if res == (domain.Student{}) {
+        err_code := helper.GetErrorCode(domain.ErrNotFound)
+        c.JSON(
+            http.StatusNotFound,
+            api.ResponseError(domain.ErrNotFound.Error(), err_code),
+        )
+        return
+    }
+
+    data := dto.StudentResponse{
+        ID:             res.ID,
+        SRN:            res.SRN,
+        NSRN:           res.NSRN,
+        Name:           res.Name,
+        Gender:         res.Gender,
+        BirthPlace:     res.BirthPlace,
+        BirthDate:      res.BirthDate,
+        ReligionID:     res.Religion.ID,
+        Address:        res.Address,
+        Telp:           res.Telp,
+        SchoolBefore:   res.SchoolBefore,
+        AcceptedGrade:  res.AcceptedGrade,
+        AcceptedDate:   res.AcceptedDate,
+        FamillyStatus:  res.Familly.Status,
+        FamillyOrder:   res.Familly.Order,
+        FatherName:     res.Father.Name,
+        FatherAddress:  res.Father.Address,
+        FatherProfession: res.Father.Profession,
+        FatherTelp:     res.Father.Telp,
+        MotherName:     res.Mother.Name,
+        MotherAddress:  res.Mother.Address,
+        MotherProfession: res.Mother.Profession,
+        MotherTelp:     res.Mother.Telp,
+        GrdName:        res.Guardian.Name,
+        GrdAddress:     res.Guardian.Address,
+        GrdProfession:  res.Guardian.Profession,
+        GrdTelp:        res.Guardian.Telp,
+    }
+
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
 func (h *studentHandler) Store(c *gin.Context) {
@@ -242,4 +307,46 @@ func (h *studentHandler) Update(c *gin.Context) {
         return
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("update student success", u))
+}
+
+func (h *studentHandler) Delete(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    res, err := h.studentUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    if res == (domain.Student{}) {
+        err_code := helper.GetErrorCode(domain.ErrNotFound)
+        c.JSON(
+            http.StatusNotFound,
+            api.ResponseError(domain.ErrNotFound.Error(), err_code),
+        )
+        return
+    }
+
+    err = h.studentUsecase.Delete(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("delete student success", make([]string,0)))
 }
