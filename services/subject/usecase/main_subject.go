@@ -56,3 +56,22 @@ func (u *subjectUsecase) Fetch(c context.Context, cursor string, num int64) (res
 
     return
 }
+
+
+func (u *subjectUsecase) GetByID(c context.Context, id int64) (res domain.Subject, err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    res, err = u.subjectRepo.GetByID(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    if res == (domain.Subject{}) {
+        return domain.Subject{}, domain.ErrNotFound
+    }
+    return
+}
