@@ -91,3 +91,19 @@ func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err e
 
     return
 }
+
+func (u *csUsecase) Update(c context.Context, cs *domain.ClassroomStudent) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    cs.UpdatedAt = time.Now()
+
+    if err = u.csRepo.Update(ctx, cs); err != nil {
+        if u.cfg.Release {
+            return domain.ErrServerError
+        }
+        return
+    }
+
+    return
+}
