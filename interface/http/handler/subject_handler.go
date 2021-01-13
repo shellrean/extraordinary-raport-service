@@ -36,6 +36,7 @@ func NewSubjectHandler(r *gin.Engine, m domain.SubjectUsecase, cfg *config.Confi
     subject.GET("/:id", handler.Show)
     subject.POST("/", handler.Store)
     subject.PUT("/:id", handler.Update)
+    subject.DELETE("/:id", handler.Delete)
 }
 
 func (h *subjectHandler) Fetch(c *gin.Context) {
@@ -223,4 +224,46 @@ func (h *subjectHandler) Update(c *gin.Context) {
         return
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("update subject success", u))
+}
+
+func (h *subjectHandler) Delete(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    res, err := h.subjectUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    if res == (domain.Subject{}) {
+        err_code := helper.GetErrorCode(domain.ErrNotFound)
+        c.JSON(
+            api.GetHttpStatusCode(domain.ErrNotFound),
+            api.ResponseError(domain.ErrNotFound.Error(), err_code),
+        )
+        return
+    }
+
+    err = h.subjectUsecase.Delete(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("delete subject success", make([]string,0)))
 }
