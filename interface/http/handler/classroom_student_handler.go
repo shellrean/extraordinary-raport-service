@@ -38,7 +38,8 @@ func NewClassroomStudentHandler(
 
 	cs.GET("/", handler.Fetch)
 	cs.GET("/:id", handler.Show)
-	cs.POST("/", handler.Store)
+    cs.POST("/", handler.Store)
+    cs.PUT("/:id", handler.Update)
 }
 
 func (h *csHandler) Fetch(c *gin.Context) {
@@ -146,4 +147,83 @@ func (h *csHandler) Store(c *gin.Context) {
     }
     u.ID = cs.ID
     c.JSON(http.StatusOK, api.ResponseSuccess("create classroom student success", u))
+}
+
+func (h *csHandler) Update(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    res, err := h.csUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    if res == (domain.ClassroomStudent{}) {
+        err_code := helper.GetErrorCode(domain.ErrNotFound)
+        c.JSON(
+            api.GetHttpStatusCode(domain.ErrNotFound),
+            api.ResponseError(domain.ErrNotFound.Error(), err_code),
+        )
+        return
+    }
+
+    var u dto.ClassroomStudentResponse
+    if err := c.ShouldBindJSON(&u); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+    }
+    validate := validator.New()
+    if err := validate.Struct(u); err != nil {
+        var reserr []api.ErrorValidation
+
+        errs := err.(validator.ValidationErrors)
+        for _, e := range errs {
+            msg := helper.GetErrorMessage(e)
+            res := api.ErrorValidation{
+                Field:      strings.ToLower(e.Field()),
+                Message:    msg,
+            }
+            reserr = append(reserr, res)
+        }
+        err_code := helper.GetErrorCode(domain.ErrValidation)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseErrorWithData(domain.ErrValidation.Error(), err_code, reserr),
+        )
+        return
+    }
+
+    cs := domain.ClassroomStudent{
+        ID:                  int64(id),
+        ClassroomAcademic:   domain.ClassroomAcademic{ID: u.ClassroomAcademicID},
+        Student:   			 domain.Student{ID: u.StudentID},
+    }
+
+    err = h.csUsecase.Update(c, &cs)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    u.ID = cs.ID
+    c.JSON(http.StatusOK, api.ResponseSuccess("update classroom student success", u))
 }
