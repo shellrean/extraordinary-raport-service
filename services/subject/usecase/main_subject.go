@@ -110,3 +110,18 @@ func (u *subjectUsecase) Update(c context.Context, s *domain.Subject) (err error
     }
     return 
 }
+
+func (u *subjectUsecase) Delete(c context.Context, id int64) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    err = u.subjectRepo.Delete(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    return
+}
