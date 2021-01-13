@@ -61,3 +61,18 @@ func (m *csRepository) Fetch(ctx context.Context, cursor int64, num int64) (res 
 
     return
 }
+
+func (m *csRepository) GetByID(ctx context.Context, id int64) (res domain.ClassroomStudent, err error) {
+    query := `SELECT id,classroom_academic_id,student_id,created_at,updated_at
+        FROM classroom_students WHERE id=$1`
+
+    list, err := m.fetch(ctx, query, id)
+    if err != nil {
+        return domain.ClassroomStudent{}, err
+    }
+    if len(list) < 1 {
+        return domain.ClassroomStudent{}, err
+    }
+    res = list[0]
+    return
+}
