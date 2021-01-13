@@ -195,3 +195,21 @@ func (m *postgresStudentRepository) Update(ctx context.Context, t *domain.Studen
     }
     return nil
 }
+
+func (m *postgresStudentRepository) Delete(ctx context.Context, id int64) (err error) {
+	query := `DELETE FROM students WHERE id=$1`
+	result, err := m.Conn.ExecContext(ctx, query, id)
+	if err != nil {
+		return
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	
+	if rows != 1 {
+        return fmt.Errorf("expected single row affected, got %d rows affected", rows)
+	}
+	return
+}
