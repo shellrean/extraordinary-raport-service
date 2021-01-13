@@ -37,6 +37,7 @@ func NewClassroomStudentHandler(
 	cs.Use(handler.mddl.Auth())
 
 	cs.GET("/", handler.Fetch)
+	cs.GET("/:id", handler.Show)
 }
 
 func (h *csHandler) Fetch(c *gin.Context) {
@@ -66,4 +67,33 @@ func (h *csHandler) Fetch(c *gin.Context) {
 
 	c.Header("X-Cursor", nextCursor)
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
+}
+
+func (h *csHandler) Show(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    res := domain.ClassroomStudent{}
+    res, err = h.csUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    data := dto.ClassroomStudentResponse {
+        ID:				res.ID,
+		ClassroomAcademicID: res.ClassroomAcademic.ID,
+		StudentID:		res.Student.ID,
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
