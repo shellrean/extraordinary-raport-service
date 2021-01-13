@@ -76,3 +76,15 @@ func (m *csRepository) GetByID(ctx context.Context, id int64) (res domain.Classr
     res = list[0]
     return
 }
+
+func (m *csRepository) Store(ctx context.Context, cs *domain.ClassroomStudent) (err error) {
+    query := `INSERT INTO classroom_students (classroom_academic_id, student_id,created_at, updated_at)
+            VALUES ($1,$2,$3,$4) RETURNING id`
+        
+    err = m.Conn.QueryRowContext(ctx, query, cs.ClassroomAcademic.ID, cs.Student.ID,cs.CreatedAt, cs.UpdatedAt).Scan(&cs.ID)
+    if err != nil {
+        return err
+    }
+    
+    return
+}
