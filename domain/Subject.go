@@ -18,6 +18,7 @@ type SubjectRepository interface {
 	GetByID(ctx context.Context, id int64) (Subject, error)
 	Store(ctx context.Context, s *Subject) (error)
 	Update(ctx context.Context, s *Subject) (error)
+	Delete(ctx context.Context, id int64) (error)
 }
 
 type SubjectUsecase interface {
@@ -25,4 +26,5 @@ type SubjectUsecase interface {
 	GetByID(ctx context.Context, id int64) (Subject, error)
 	Store(ctx context.Context, s *Subject) (error)
 	Update(ctx context.Context, s *Subject) (error)
+	Delete(ctx context.Context, id int64) (error)
 }
