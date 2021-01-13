@@ -75,3 +75,21 @@ func (u *subjectUsecase) GetByID(c context.Context, id int64) (res domain.Subjec
     }
     return
 }
+
+func (u *subjectUsecase) Store(c context.Context, s *domain.Subject) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    s.CreatedAt = time.Now()
+    s.UpdatedAt = time.Now()
+
+    err = u.subjectRepo.Store(ctx, s)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    return
+}
