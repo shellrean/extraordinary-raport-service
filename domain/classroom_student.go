@@ -18,6 +18,7 @@ type ClassroomStudentRepository interface {
 	GetByID(ctx context.Context, id int64) (ClassroomStudent, error)
 	Store(ctx context.Context, cs *ClassroomStudent) (error)
 	Update(ctx context.Context, cs *ClassroomStudent) (error)
+	Delete(ctx context.Context, id int64) (error)
 }
 
 type ClassroomStudentUsecase interface {
@@ -25,4 +26,5 @@ type ClassroomStudentUsecase interface {
 	GetByID(ctx context.Context, id int64) (ClassroomStudent, error)
 	Store(ctx context.Context, cs *ClassroomStudent) (error)
 	Update(ctx context.Context, cs *ClassroomStudent) (error)
+	Delete(ctx context.Context, id int64) (error)
 }
