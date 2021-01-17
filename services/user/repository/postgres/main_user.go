@@ -51,11 +51,11 @@ func (m *postgresUserRepository) fetch(ctx context.Context, query string, args .
     return
 }
 
-func (m *postgresUserRepository) Fetch(ctx context.Context, cursor int64, num int64) (res []domain.User, err error) {
+func (m *postgresUserRepository) Fetch(ctx context.Context, q string, cursor int64, num int64) (res []domain.User, err error) {
     query := `SELECT id,name,email,password,role,created_at,updated_at
-            FROM users WHERE id > $1 ORDER BY id LIMIT $2`
+            FROM users WHERE LOWER(name) LIKE '%' || $1 || '%' OR email LIKE '%' || $2 || '%' AND id > $3 ORDER BY id LIMIT $4`
 
-    res, err = m.fetch(ctx, query, cursor, num)
+    res, err = m.fetch(ctx, query, q, q, cursor, num)
     if err != nil {
         return nil, err
     }
@@ -109,7 +109,7 @@ func (m *postgresUserRepository) Store(ctx context.Context, u *domain.User) (err
 }
 
 func (m *postgresUserRepository) Update(ctx context.Context, u *domain.User) (err error) {
-    query := `UPDATE users SET name=$1, email=$2, password=$3, $role=$4 updated_at=$5
+    query := `UPDATE users SET name=$1, email=$2, password=$3, role=$4, updated_at=$5
             WHERE id=$6`
 
     result, err := m.Conn.ExecContext(ctx, query, u.Name, u.Email, u.Password, u.Role, u.UpdatedAt, u.ID)
