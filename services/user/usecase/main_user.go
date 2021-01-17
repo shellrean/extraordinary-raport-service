@@ -28,7 +28,7 @@ func NewUserUsecase(d domain.UserRepository, dc domain.UserCacheRepository, time
     }
 }
 
-func (u *userUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.User, nextCursor string, err error) {
+func (u *userUsecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.User, nextCursor string, err error) {
     if num == 0 {
         num = int64(10)
     }
@@ -42,7 +42,7 @@ func (u *userUsecase) Fetch(c context.Context, cursor string, num int64) (res []
         return
     }
 
-    res, err = u.userRepo.Fetch(ctx, decodedCursor, num)
+    res, err = u.userRepo.Fetch(ctx, query, decodedCursor, num)
     if err != nil {
         if u.cfg.Release {
             err = domain.ErrServerError
