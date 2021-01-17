@@ -25,7 +25,7 @@ type StudentResponse struct {
 	MotherProfession string 	`json:"mother_profession"`
 	MotherTelp 		string 		`json:"mother_telp"`
 	GrdName 		string 		`json:"grd_name"`
-	GrdAddress 		string 		`json:"grd_addrss"`
+	GrdAddress 		string 		`json:"grd_address"`
 	GrdProfession 	string 		`json:"grd_profession"`
 	GrdTelp			string 		`json:"grd_telp"`
 }
