@@ -18,7 +18,7 @@ type User struct {
 
 // UserUsecase represent the user's usecase
 type UserUsecase interface {
-    Fetch(ctx context.Context, cursor string, num int64) ([]User, string, error)
+    Fetch(ctx context.Context, query string, cursor string, num int64) ([]User, string, error)
     GetByID(ctx context.Context, id int64) (User, error)
     Store(ctx context.Context, ur *User) (error)
     Update(ctx context.Context, ur *User) (error)
@@ -29,7 +29,7 @@ type UserUsecase interface {
 
 // UserRepository represent the user's repository
 type UserRepository interface {
-    Fetch(ctx context.Context, cursor int64, num int64) ([]User, error)
+    Fetch(ctx context.Context, query string, cursor int64, num int64) ([]User, error)
     GetByID(ctx context.Context, id int64) (User, error)
     GetByEmail(ctx context.Context, email string) (User, error)
     Store(ctx context.Context, u *User) (error)
