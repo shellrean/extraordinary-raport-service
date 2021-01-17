@@ -46,8 +46,9 @@ func (h *UserHandler) FetchUsers(c *gin.Context) {
     limS , _ := c.GetQuery("limit")
     lim, _ := strconv.Atoi(limS)
     cursor, _ := c.GetQuery("cursor")
+    query, _ := c.GetQuery("q")
 
-    res, nextCursor, err := h.userUsecase.Fetch(c, cursor, int64(lim))
+    res, nextCursor, err := h.userUsecase.Fetch(c, query, cursor, int64(lim))
     if err != nil {
         err_code := helper.GetErrorCode(err)
         c.JSON(
