@@ -33,10 +33,11 @@ func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mdd
     user.Use(handler.mddl.Auth())
 
     user.GET("/", handler.FetchUsers)
-    user.GET("/:id", handler.Show)
-    user.POST("/", handler.Store)
-    user.PUT("/:id", handler.Update)
-    user.DELETE("/:id", handler.Delete)
+    user.GET("user/:id", handler.Show)
+    user.POST("user", handler.Store)
+    user.PUT("user/:id", handler.Update)
+    user.DELETE("user/:id", handler.Delete)
+    user.DELETE("delete", handler.DeleteMultiple)
 
     r.POST("/auth", handler.Autheticate)
     r.POST("/refresh-token", handler.RefreshToken)
@@ -196,7 +197,7 @@ func (h *UserHandler) Show(c *gin.Context) {
 }
 
 func (h *UserHandler) Store(c *gin.Context) {
-    var u domain.User
+    var u dto.UserCreatePayload
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
@@ -226,7 +227,14 @@ func (h *UserHandler) Store(c *gin.Context) {
         return
     }
 
-    err := h.userUsecase.Store(c, &u)
+    user := domain.User{
+        Name:           u.Name,
+        Email:          u.Email,
+        Role:           u.Role,
+        Password:       u.Password,
+    }
+
+    err := h.userUsecase.Store(c, &user)
     if err != nil {
         err_code := helper.GetErrorCode(err)
         c.JSON(
@@ -236,10 +244,10 @@ func (h *UserHandler) Store(c *gin.Context) {
         return
     }
     data := dto.UserResponse{
-        ID:     u.ID,
-        Name:   u.Name,
-        Email:  u.Email,
-        Role:   u.Role,
+        ID:     user.ID,
+        Name:   user.Name,
+        Email:  user.Email,
+        Role:   user.Role,
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("create user success", data))
 }
@@ -363,4 +371,18 @@ func (h *UserHandler) Delete(c *gin.Context) {
         return
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("delete user success", make([]string,0)))
+}
+
+func (h *UserHandler) DeleteMultiple(c *gin.Context) {
+    query, _ := c.GetQuery("q")
+    err := h.userUsecase.DeleteMultiple(c, query)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("delete multiple user success", make([]string,0)))
 }
