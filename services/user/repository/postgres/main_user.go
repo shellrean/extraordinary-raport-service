@@ -4,6 +4,7 @@ import (
     "context"
     "database/sql"
     "fmt"
+    "github.com/lib/pq"
 
     "github.com/shellrean/extraordinary-raport/domain"
 )
@@ -53,9 +54,9 @@ func (m *postgresUserRepository) fetch(ctx context.Context, query string, args .
 
 func (m *postgresUserRepository) Fetch(ctx context.Context, q string, cursor int64, num int64) (res []domain.User, err error) {
     query := `SELECT id,name,email,password,role,created_at,updated_at
-            FROM users WHERE LOWER(name) LIKE '%' || $1 || '%' OR email LIKE '%' || $2 || '%' AND id > $3 ORDER BY id LIMIT $4`
+            FROM users WHERE (LOWER(name) LIKE '%' || $1 || '%' OR email LIKE '%' || $2 || '%') AND role=$3 AND id > $4 ORDER BY id LIMIT $5`
 
-    res, err = m.fetch(ctx, query, q, q, cursor, num)
+    res, err = m.fetch(ctx, query, q, q, domain.RoleTeacher, cursor, num)
     if err != nil {
         return nil, err
     }
@@ -139,5 +140,16 @@ func (m *postgresUserRepository) Delete(ctx context.Context, id int64) (err erro
     if rows != 1 {
         return fmt.Errorf("expected single row affected, got %d rows affected", rows)
     }
+    return
+}
+
+func (m *postgresUserRepository) DeleteMultiple(ctx context.Context, ids []string) (err error) {
+    query := `DELETE FROM users WHERE id = ANY($1)`
+
+    _, err = m.Conn.ExecContext(ctx, query, pq.Array(ids))
+    if err != nil {
+        return err
+    }
+
     return
 }
