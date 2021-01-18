@@ -4,6 +4,7 @@ import (
     "context"
     "time"
     "fmt"
+    "strings"
 
     "golang.org/x/crypto/bcrypt"
 
@@ -193,6 +194,10 @@ func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
     ur.Password = string(password)
     ur.CreatedAt = time.Now()
     ur.UpdatedAt = time.Now()
+    
+    if ur.Role == 0 {
+        ur.Role = domain.RoleTeacher
+    }
 
     if err = u.userRepo.Store(ctx, ur); err != nil {
         if u.cfg.Release {
@@ -246,6 +251,24 @@ func (u *userUsecase) Delete(c context.Context, id int64) (err error) {
     defer cancel()
 
     err = u.userRepo.Delete(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            return domain.ErrServerError
+        }
+        return
+    }
+    return
+}
+
+func (u *userUsecase) DeleteMultiple(c context.Context, query string) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    idV := strings.TrimRight(query, ",")
+	idV = strings.TrimLeft(idV, ",") 
+    ids := strings.Split(idV, ",")
+    
+    err = u.userRepo.DeleteMultiple(ctx, ids)
     if err != nil {
         if u.cfg.Release {
             return domain.ErrServerError
