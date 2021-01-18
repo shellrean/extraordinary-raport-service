@@ -375,6 +375,15 @@ func (h *UserHandler) Delete(c *gin.Context) {
 
 func (h *UserHandler) DeleteMultiple(c *gin.Context) {
     query, _ := c.GetQuery("q")
+    if query == "" {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    
     err := h.userUsecase.DeleteMultiple(c, query)
     if err != nil {
         err_code := helper.GetErrorCode(err)
