@@ -11,3 +11,11 @@ type UserResponse struct {
 	Email       string      `json:"email"`
 	Role 		int			`json:"role"`
 }
+
+type UserCreatePayload struct {
+	ID 			int64 		`json:"id"`
+	Name 		string 		`json:"name" validate:"required"`
+	Email       string      `json:"email" validate:"required,email"`
+	Role 		int			`json:"role"`
+	Password 	string 		`json:"password" validate:"required,min=6"`
+}
