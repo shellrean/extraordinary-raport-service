@@ -52,7 +52,7 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 		year = fmt.Sprintf("%d/%d", currentTime.Year(), currentTime.AddDate(1,0,0).Year())
 		semester = 1
 	} else {
-		year = fmt.Sprintf("%d/%d", currentTime.Year(), currentTime.AddDate(-1,0,0).Year())
+		year = fmt.Sprintf("%d/%d", currentTime.AddDate(-1,0,0).Year(), currentTime.Year())
 		semester = 2
 	}
 	list, err := u.academicRepo.GetByYearAndSemester(ctx, year, int(semester))
