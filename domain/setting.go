@@ -18,5 +18,10 @@ type Setting struct {
 }
 
 type SettingRepository interface {
+	Fetch(ctx context.Context, names []string) ([]Setting, error)
 	GetByName(ctx context.Context, name string) (Setting, error)
+}
+
+type SettingUsecase interface {
+	Fetch(ctx context.Context, names []string) ([]Setting, error)
 }
