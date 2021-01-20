@@ -24,6 +24,7 @@ import (
     _majorRepo "github.com/shellrean/extraordinary-raport/services/major/repository/postgres"
     _majorUsecase "github.com/shellrean/extraordinary-raport/services/major/usecase"
     _settingRepo "github.com/shellrean/extraordinary-raport/services/setting/repository/postgres"
+    _settingUsecase "github.com/shellrean/extraordinary-raport/services/setting/usecase"
     _classroomAcademicRepo "github.com/shellrean/extraordinary-raport/services/classroom_academic/repository/postgres"
     _classroomAcademicUsecase "github.com/shellrean/extraordinary-raport/services/classroom_academic/usecase"
     _subjectRepo "github.com/shellrean/extraordinary-raport/services/subject/repository/postgres"
@@ -101,6 +102,7 @@ func main() {
     classroomUsecase := _classroomUsecase.NewClassroomUsecase(classroomRepo, majorRepo, timeoutContext, cfg)
 
     settingRepo := _settingRepo.NewPostgresSettingRepository(db)
+    settingUsecase := _settingUsecase.NewSettingUsecase(settingRepo, timeoutContext, cfg)
 
     classroomAcademicRepo := _classroomAcademicRepo.NewPostgresClassroomAcademicRepository(db)
     classroomAcademicUsecase := _classroomAcademicUsecase.NewClassroomAcademicUsecase(
@@ -136,11 +138,12 @@ func main() {
     httpHandler.NewClassAcademicHandler(r, classroomAcademicUsecase, cfg, mddl)
     httpHandler.NewSubjectHandler(r, subjectUsecase, cfg, mddl)
     httpHandler.NewClassroomStudentHandler(r, classroomStudentUsecase, cfg, mddl)
+    httpHandler.NewSettingHandler(r, settingUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
-    fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
     err = r.Run(fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port))
     if err != nil {
         log.Fatal(err)
     }
+    fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
 }
