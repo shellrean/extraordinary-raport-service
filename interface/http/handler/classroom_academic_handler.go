@@ -36,7 +36,8 @@ func NewClassAcademicHandler(
 	ca := r.Group("/classroom-academics")
 	ca.Use(handler.mddl.Auth())
 
-	ca.GET("/", handler.Fetch)
+    ca.GET("/", handler.Fetch)
+    ca.GET("/:id", handler.Show)
 	ca.POST("/", handler.Store)
 	ca.PUT("/:id", handler.Update)
 	ca.DELETE("/:id", handler.Delete)
@@ -67,6 +68,41 @@ func (h *classAcademicHandler) Fetch(c *gin.Context) {
 		data = append(data, ac)
 	}
 
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
+}
+
+func (h *classAcademicHandler) Show(c *gin.Context) {
+    idS := c.Param("id")
+	id, err := strconv.Atoi(idS)
+	if err != nil {
+		err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+    
+	res, err := h.classAcademicUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+	
+    data := dto.ClassroomAcademicResponse{
+		ID:				res.ID,
+		AcademicID:		res.Academic.ID,
+		TeacherID:		res.Teacher.ID,
+        ClassroomID: 	res.Classroom.ID,
+        TeacherName:    res.Teacher.Name,
+        ClassroomName:  res.Classroom.Name,
+        ClassroomMajor: res.Classroom.Major.Name,
+    }
+    
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
