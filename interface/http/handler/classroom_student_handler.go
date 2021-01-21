@@ -62,8 +62,11 @@ func (h *csHandler) Fetch(c *gin.Context) {
 	for _, item := range res {
 		ac := dto.ClassroomStudentResponse{
 			ID:				item.ID,
-			ClassroomAcademicID: item.ClassroomAcademic.ID,
-			StudentID:		item.Student.ID,
+            ClassroomAcademicID: item.ClassroomAcademic.ID,
+            StudentID:		item.Student.ID,
+            StudentSRN:     item.Student.SRN,
+            StudentNSRN:    item.Student.NSRN,
+            StudentName:    item.Student.Name,
 		}
 		data = append(data, ac)
 	}
@@ -96,13 +99,16 @@ func (h *csHandler) Show(c *gin.Context) {
     data := dto.ClassroomStudentResponse {
         ID:				res.ID,
 		ClassroomAcademicID: res.ClassroomAcademic.ID,
-		StudentID:		res.Student.ID,
+        StudentID:		res.Student.ID,
+        StudentSRN:     res.Student.SRN,
+        StudentNSRN:    res.Student.NSRN,
+        StudentName:    res.Student.Name,
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
 func (h *csHandler) Store(c *gin.Context) {
-    var u dto.ClassroomStudentResponse
+    var u dto.ClassroomStudentRequest
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
@@ -180,7 +186,7 @@ func (h *csHandler) Update(c *gin.Context) {
         return
     }
 
-    var u dto.ClassroomStudentResponse
+    var u dto.ClassroomStudentRequest
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
