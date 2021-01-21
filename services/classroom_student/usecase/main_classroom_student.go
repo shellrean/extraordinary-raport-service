@@ -62,6 +62,23 @@ func (u *csUsecase) Fetch(c context.Context, cursor string, num int64) (res []do
     return
 }
 
+func (u *csUsecase) GetByClassroomAcademic(c context.Context, classroomAcademicID int64) (res []domain.ClassroomStudent, err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    res, err = u.csRepo.GetByClassroomAcademic(ctx, classroomAcademicID)
+    if err != nil {
+        if u.cfg.Release {
+            err = domain.ErrServerError
+            return
+        }
+        return
+    }
+
+    return
+}
+
+
 func (u *csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomStudent, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
@@ -161,4 +178,8 @@ func (u *csUsecase) Delete(c context.Context, id int64) (err error) {
         return
     }
     return
+}
+
+func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64) (err error) {
+   
 }
