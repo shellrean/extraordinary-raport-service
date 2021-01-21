@@ -41,9 +41,10 @@ func NewStudentHandler(r *gin.Engine, m domain.StudentUsecase, cfg *config.Confi
 func (h *studentHandler) Index(c *gin.Context) {
 	limS, _ := c.GetQuery("limit")
 	lim, _ := strconv.Atoi(limS)
-	cursor, _ := c.GetQuery("cursor")
+    cursor, _ := c.GetQuery("cursor")
+    query, _ := c.GetQuery("q")
 
-	res, nextCursor, err := h.studentUsecase.Fetch(c, cursor, int64(lim))
+	res, nextCursor, err := h.studentUsecase.Fetch(c, query, cursor, int64(lim))
 	if err != nil {
 		error_code := helper.GetErrorCode(err)
 		c.JSON(
