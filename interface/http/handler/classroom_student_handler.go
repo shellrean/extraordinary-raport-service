@@ -37,10 +37,12 @@ func NewClassroomStudentHandler(
 	cs.Use(handler.mddl.Auth())
 
 	cs.GET("/", handler.Fetch)
-	cs.GET("/:id", handler.Show)
-    cs.POST("/", handler.Store)
-    cs.PUT("/:id", handler.Update)
-    cs.DELETE("/:id", handler.Delete)
+    cs.GET("/classroom-student/:id", handler.Show)
+    cs.POST("/classroom-student", handler.Store)
+    cs.PUT("/classroom-student/:id", handler.Update)
+    cs.DELETE("/classroom-student/:id", handler.Delete)
+    
+    cs.GET("/classroom/:id", handler.FetchByClassroom)
 }
 
 func (h *csHandler) Fetch(c *gin.Context) {
@@ -72,6 +74,44 @@ func (h *csHandler) Fetch(c *gin.Context) {
 	}
 
 	c.Header("X-Cursor", nextCursor)
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
+}
+
+func (h *csHandler) FetchByClassroom(c *gin.Context) {
+	idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+	
+	res, err := h.csUsecase.GetByClassroomAcademic(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+	
+	var data []dto.ClassroomStudentResponse
+	for _, item := range res {
+		ac := dto.ClassroomStudentResponse{
+			ID:				item.ID,
+            ClassroomAcademicID: item.ClassroomAcademic.ID,
+            StudentID:		item.Student.ID,
+            StudentSRN:     item.Student.SRN,
+            StudentNSRN:    item.Student.NSRN,
+            StudentName:    item.Student.Name,
+		}
+		data = append(data, ac)
+	}
+
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
