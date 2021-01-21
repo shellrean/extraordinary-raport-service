@@ -134,6 +134,30 @@ func (m *csRepository) GetByAcademicAndStudent(ctx context.Context, academic int
     return
 }
 
+func (m *csRepository) GetByClassroomAcademic(ctx context.Context, academicID int64) (res []domain.ClassroomStudent, err error) {
+    query := `SELECT 
+        cs.id,
+        cs.classroom_academic_id,
+        cs.student_id,
+        s.srn,
+        s.nsrn,
+        s.name,
+        cs.created_at,
+        cs.updated_at 
+    FROM 
+        classroom_students cs
+    INNER JOIN students s
+        ON s.id = cs.student_id
+    WHERE classroom_academic_id=$1`
+
+    res, err = m.fetch(ctx, query, academicID)
+    if err != nil {
+        return nil, err
+    }
+
+    return
+}
+
 func (m *csRepository) Store(ctx context.Context, cs *domain.ClassroomStudent) (err error) {
     query := `INSERT INTO classroom_students (classroom_academic_id, student_id,created_at, updated_at)
             VALUES ($1,$2,$3,$4) RETURNING id`
