@@ -3,6 +3,8 @@ package usecase
 import (
     "time"
     "context"
+    "strconv"
+    "fmt"
 
     "github.com/shellrean/extraordinary-raport/domain"
     "github.com/shellrean/extraordinary-raport/config"
@@ -10,18 +12,21 @@ import (
 )
 
 type csUsecase struct {
-	csRepo			domain.ClassroomStudentRepository
+    csRepo			domain.ClassroomStudentRepository
+    settingRepo     domain.SettingRepository
 	contextTimeout	time.Duration
 	cfg 			*config.Config
 }
 
 func NewClassroomStudentUsecase(
-	d domain.ClassroomStudentRepository,
+    d domain.ClassroomStudentRepository,
+    sr domain.SettingRepository,
 	timeout time.Duration,
 	cfg *config.Config,
 ) domain.ClassroomStudentUsecase {
 	return &csUsecase {
-		csRepo:			d,
+        csRepo:			d,
+        settingRepo:    sr,
 		contextTimeout: timeout,
 		cfg:			cfg,
 	}
@@ -78,6 +83,42 @@ func (u *csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomSt
 func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
+
+    res, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+    }
+    
+    if res == (domain.Setting{}) {
+		err = domain.ErrNotFound
+		return
+    }
+    
+    id, err := strconv.Atoi(res.Value)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+    }
+    
+    exist, err := u.csRepo.GetByAcademicAndStudent(ctx, int64(id), cs.Student.ID)
+	if err != nil {
+		if u.cfg.Release {
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if exist != (domain.ClassroomStudent{}) {
+		return fmt.Errorf("student for this academic already placed")
+	}
 
     cs.CreatedAt = time.Now()
     cs.UpdatedAt = time.Now()
