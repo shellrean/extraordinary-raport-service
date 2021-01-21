@@ -118,7 +118,12 @@ func main() {
     subjectUsecase := _subjectUsecase.NewSubjectUsecase(subjectRepo, timeoutContext, cfg)
 
     classroomStudentRepo := _classroomStudentRepo.NewPostgresClassroomStudentRepository(db)
-    classroomStudentUsecase := _classroomStudentUsecase.NewClassroomStudentUsecase(classroomStudentRepo, timeoutContext, cfg)
+    classroomStudentUsecase := _classroomStudentUsecase.NewClassroomStudentUsecase(
+        classroomStudentRepo, 
+        settingRepo,
+        timeoutContext, 
+        cfg,
+    )
 
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
