@@ -59,7 +59,9 @@ func (h *classAcademicHandler) Fetch(c *gin.Context) {
 			ID:				item.ID,
 			AcademicID:		item.Academic.ID,
 			TeacherID:		item.Teacher.ID,
-			ClassroomID: 	item.Classroom.ID,
+            ClassroomID: 	item.Classroom.ID,
+            TeacherName:    item.Teacher.Name,
+            ClassroomName:  item.Classroom.Name,
 		}
 		data = append(data, ac)
 	}
@@ -68,7 +70,7 @@ func (h *classAcademicHandler) Fetch(c *gin.Context) {
 }
 
 func (h *classAcademicHandler) Store(c *gin.Context) {
-	var u dto.ClassroomAcademicResponse
+	var u dto.ClassroomAcademicRequest
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
@@ -99,9 +101,6 @@ func (h *classAcademicHandler) Store(c *gin.Context) {
 	}
 
 	ca := domain.ClassroomAcademic {
-		Academic: 	domain.Academic {
-			ID: 	u.AcademicID,
-		},
 		Teacher:	domain.User {
 			ID:		u.TeacherID,
 		},
@@ -155,7 +154,7 @@ func (h *classAcademicHandler) Update(c *gin.Context) {
         return
 	}
 	
-	var u dto.ClassroomAcademicResponse
+	var u dto.ClassroomAcademicRequest
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
         c.JSON(
@@ -187,9 +186,6 @@ func (h *classAcademicHandler) Update(c *gin.Context) {
 
 	ca := domain.ClassroomAcademic {
 		ID:	int64(id),
-		Academic: 	domain.Academic {
-			ID: 	u.AcademicID,
-		},
 		Teacher:	domain.User {
 			ID:		u.TeacherID,
 		},
