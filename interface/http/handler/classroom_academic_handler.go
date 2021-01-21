@@ -62,6 +62,7 @@ func (h *classAcademicHandler) Fetch(c *gin.Context) {
             ClassroomID: 	item.Classroom.ID,
             TeacherName:    item.Teacher.Name,
             ClassroomName:  item.Classroom.Name,
+            ClassroomMajor: item.Classroom.Major.Name,
 		}
 		data = append(data, ac)
 	}
