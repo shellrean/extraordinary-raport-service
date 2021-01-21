@@ -2,6 +2,15 @@ package dto
 
 type ClassroomStudentResponse struct {
 	ID 					int64		`json:"id"`
-	ClassroomAcademicID int64		`json:"classroom_academic_id" validate:"required"`
-	StudentID 			int64		`json:"student_id" validate:"required"`
+	ClassroomAcademicID int64		`json:"classroomAcademicID"`
+	StudentID 			int64		`json:"studentID"`
+	StudentSRN 			string 		`json:"studentSRN"`
+	StudentNSRN			string 		`json:"studentNSRN"`
+	StudentName 		string 		`json:"studentName"`
+}
+
+type ClassroomStudentRequest struct {
+	ID 					int64		`json:"id"`
+	ClassroomAcademicID int64		`json:"classroomAcademicID" validate:"required"`
+	StudentID 			int64		`json:"studentID" validate:"required"`
 }
