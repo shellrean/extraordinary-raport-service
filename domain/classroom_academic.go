@@ -6,12 +6,12 @@ import (
 )
 
 type ClassroomAcademic struct {
-	ID 			int64		`json:"id"`
-	Academic 	Academic	`json:"academic"`
-	Classroom 	Classroom	`json:"classroom"`
-	Teacher 	User		`json:"teacher"`
-	CreatedAt	time.Time	`json:"created_at"`
-	UpdatedAt 	time.Time 	`json:"updated_at"`
+	ID 			int64
+	Academic 	Academic
+	Classroom 	Classroom
+	Teacher 	User
+	CreatedAt	time.Time
+	UpdatedAt 	time.Time
 }
 
 type ClassroomAcademicRepository interface {
