@@ -7,6 +7,7 @@ type ClassroomAcademicResponse struct {
 	ClassroomID 	int64	`json:"classroomID"`
 	TeacherName 	string	`json:"teacherName"`
 	ClassroomName 	string 	`json:"classroomName"`
+	ClassroomMajor  string 	`json:"classroomMajor"`
 }
 
 type ClassroomAcademicRequest struct {
