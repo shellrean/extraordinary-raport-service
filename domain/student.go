@@ -40,7 +40,7 @@ type Student struct {
 }
 
 type StudentRepository interface {
-	Fetch(ctx context.Context, cursor int64, num int64) ([]Student, error)
+	Fetch(ctx context.Context, query string, cursor int64, num int64) ([]Student, error)
 	GetByID(ctx context.Context, id int64) (Student, error)
 	Store(ctx context.Context, s *Student) (error)
 	Update(ctx context.Context, s *Student) (error)
@@ -48,7 +48,7 @@ type StudentRepository interface {
 }
 
 type StudentUsecase interface {
-	Fetch(ctx context.Context, cursor string, num int64) ([]Student, string, error)
+	Fetch(ctx context.Context, query string, cursor string, num int64) ([]Student, string, error)
 	GetByID(ctx context.Context, id int64) (Student, error)
 	Store(ctx context.Context, s *Student) (error)
 	Update(ctx context.Context, s *Student) (error)
