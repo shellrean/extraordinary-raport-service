@@ -144,17 +144,41 @@ func (m *classroomAcademicRepository) GetByAcademicAndClass(ctx context.Context,
 }
 
 func (m *classroomAcademicRepository) GetByID(ctx context.Context, id int64) (res domain.ClassroomAcademic, err error) {
-	query := `SELECT id,academic_id,classroom_id, teacher_id,created_at,updated_at
-		FROM classroom_academics WHERE id=$1`
+	query := `SELECT
+		ca.id,
+		ca.academic_id,
+		ca.classroom_id,
+		ca.teacher_id,
+		c.name,
+		m.name,
+		u.name,
+		ca.created_at,
+		ca.updated_at
+	FROM 
+		classroom_academics ca
+	INNER JOIN classrooms c
+		ON c.id = ca.classroom_id
+	INNER JOIN users u
+		ON u.id = ca.teacher_id
+	INNER JOIN majors m
+		on m.id = c.major_id
+	WHERE ca.id=$1`
 
-	list, err := m.fetch(ctx, query, id)
+	err = m.Conn.QueryRowContext(ctx, query, id).Scan(
+		&res.ID,
+		&res.Academic.ID,
+		&res.Classroom.ID,
+		&res.Teacher.ID,
+		&res.Classroom.Name,
+		&res.Classroom.Major.Name,
+		&res.Teacher.Name,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+	)
+
 	if err != nil {
 		return
 	}
-	if len(list) < 1 {
-		return domain.ClassroomAcademic{}, err
-	}
-	res = list[0]
 	return
 }
 
