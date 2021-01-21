@@ -16,6 +16,7 @@ type ClassroomStudent struct {
 type ClassroomStudentRepository interface {
 	Fetch(ctx context.Context, cursor int64, num int64) ([]ClassroomStudent, error)
 	GetByID(ctx context.Context, id int64) (ClassroomStudent, error)
+	GetByAcademicAndStudent(ctx context.Context, academicID int64, studentID int64) (ClassroomStudent, error)
 	Store(ctx context.Context, cs *ClassroomStudent) (error)
 	Update(ctx context.Context, cs *ClassroomStudent) (error)
 	Delete(ctx context.Context, id int64) (error)
