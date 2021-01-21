@@ -55,14 +55,57 @@ func (m *classroomAcademicRepository) fetch(ctx context.Context, query string, a
 }
 
 func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res []domain.ClassroomAcademic, err error) {
-	query := `SELECT id, academic_id, classroom_id, teacher_id, created_at, updated_at
-		FROM classroom_academics WHERE academic_id=$1`
-	
-	res, err = m.fetch(ctx, query, id)
-	if err != nil {
-		return
-	}
-	return
+	query := `SELECT
+		ca.id,
+		ca.academic_id,
+		ca.classroom_id,
+		ca.teacher_id,
+		c.name,
+		u.name,
+		ca.created_at,
+		ca.updated_at
+	FROM 
+		classroom_academics ca
+	INNER JOIN classrooms c
+		ON c.id = ca.classroom_id
+	INNER JOIN users u
+		ON u.id = ca.teacher_id
+	WHERE academic_id=$1`
+
+	rows, err := m.Conn.QueryContext(ctx, query, id)
+    if err != nil {
+        return nil, err
+    }
+
+    defer func() {
+        rows.Close()
+    }()
+
+    for rows.Next() {
+		t := domain.ClassroomAcademic{
+			Academic: domain.Academic{},
+			Classroom: domain.Classroom{},
+			Teacher: domain.User{},
+		}
+        err = rows.Scan(
+            &t.ID,
+			&t.Academic.ID,
+			&t.Classroom.ID,
+			&t.Teacher.ID,
+			&t.Classroom.Name,
+			&t.Teacher.Name,
+            &t.CreatedAt,
+            &t.UpdatedAt,
+        )
+
+        if err != nil {
+            return nil, err
+		}
+
+        res = append(res, t)
+    }
+
+    return
 }
 
 
@@ -113,10 +156,9 @@ func (m *classroomAcademicRepository) GetByID(ctx context.Context, id int64) (re
 }
 
 func (m *classroomAcademicRepository) Update(ctx context.Context, ca *domain.ClassroomAcademic) (err error) {
-	query := `UPDATE classroom_academics SET academic_id=$1, classroom_id=$2, teacher_id=$3, updated_at=$4
-		WHERE id=$5`
-	result, err := m.Conn.ExecContext(ctx, query, 
-		ca.Academic.ID,
+	query := `UPDATE classroom_academics SET classroom_id=$1, teacher_id=$2, updated_at=$3
+		WHERE id=$4`
+	result, err := m.Conn.ExecContext(ctx, query,
 		ca.Classroom.ID,
 		ca.Teacher.ID,
 		ca.UpdatedAt,
