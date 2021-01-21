@@ -61,6 +61,7 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res 
 		ca.classroom_id,
 		ca.teacher_id,
 		c.name,
+		m.name,
 		u.name,
 		ca.created_at,
 		ca.updated_at
@@ -70,6 +71,8 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res 
 		ON c.id = ca.classroom_id
 	INNER JOIN users u
 		ON u.id = ca.teacher_id
+	INNER JOIN majors m
+		on m.id = c.major_id
 	WHERE academic_id=$1`
 
 	rows, err := m.Conn.QueryContext(ctx, query, id)
@@ -84,7 +87,7 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res 
     for rows.Next() {
 		t := domain.ClassroomAcademic{
 			Academic: domain.Academic{},
-			Classroom: domain.Classroom{},
+			Classroom: domain.Classroom{Major: domain.Major{}},
 			Teacher: domain.User{},
 		}
         err = rows.Scan(
@@ -93,6 +96,7 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res 
 			&t.Classroom.ID,
 			&t.Teacher.ID,
 			&t.Classroom.Name,
+			&t.Classroom.Major.Name,
 			&t.Teacher.Name,
             &t.CreatedAt,
             &t.UpdatedAt,
@@ -107,7 +111,6 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res 
 
     return
 }
-
 
 func (m *classroomAcademicRepository) Store(ctx context.Context, ca *domain.ClassroomAcademic) (err error) {
 	query := `INSERT INTO classroom_academics (academic_id, classroom_id, teacher_id, created_at, updated_at)
