@@ -6,11 +6,11 @@ import (
 )
 
 type Academic struct {
-	ID 			int64 		`json:"id"`
-	Name 		string 		`json:"name"`
-	Semester 	uint8 		`json:"semester"`
-	CreatedAt 	time.Time 	`json:"created_at"`
-	UpdatedAt 	time.Time 	`json:"updated_at"`
+	ID 			int64
+	Name 		string
+	Semester 	uint8
+	CreatedAt 	time.Time
+	UpdatedAt 	time.Time
 }
 
 type AcademicRepository interface {
