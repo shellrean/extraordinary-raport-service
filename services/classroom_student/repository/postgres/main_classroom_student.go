@@ -36,7 +36,10 @@ func (m *csRepository) fetch(ctx context.Context, query string, args ...interfac
         err = rows.Scan(
 			&t.ID,
 			&t.ClassroomAcademic.ID,
-			&t.Student.ID,
+            &t.Student.ID,
+            &t.Student.SRN,
+            &t.Student.NSRN,
+            &t.Student.Name,
 			&t.CreatedAt,
 			&t.UpdatedAt,
         )
@@ -52,8 +55,20 @@ func (m *csRepository) fetch(ctx context.Context, query string, args ...interfac
 }
 
 func (m *csRepository) Fetch(ctx context.Context, cursor int64, num int64) (res []domain.ClassroomStudent, err error) {
-    query := `SELECT id,classroom_academic_id,student_id,created_at,updated_at
-            FROM classroom_students WHERE id > $1 ORDER BY id LIMIT $2`
+    query := `SELECT 
+        cs.id,
+        cs.classroom_academic_id,
+        cs.student_id,
+        s.srn,
+        s.nsrn,
+        s.name,
+        cs.created_at,
+        cs.updated_at
+    FROM 
+        classroom_students cs
+    INNER JOIN students s
+        ON s.id = cs.student_id
+    WHERE cs.id > $1 ORDER BY cs.id LIMIT $2`
 
     res, err = m.fetch(ctx, query, cursor, num)
     if err != nil {
@@ -64,10 +79,51 @@ func (m *csRepository) Fetch(ctx context.Context, cursor int64, num int64) (res 
 }
 
 func (m *csRepository) GetByID(ctx context.Context, id int64) (res domain.ClassroomStudent, err error) {
-    query := `SELECT id,classroom_academic_id,student_id,created_at,updated_at
-        FROM classroom_students WHERE id=$1`
+    query := `SELECT 
+        cs.id,
+        cs.classroom_academic_id,
+        cs.student_id,
+        s.srn,
+        s.nsrn,
+        s.name,
+        cs.created_at,
+        cs.updated_at
+    FROM 
+        classroom_students cs
+    INNER JOIN students s
+        ON s.id = cs.student_id
+    WHERE cs.id=$1`
 
     list, err := m.fetch(ctx, query, id)
+    if err != nil {
+        return domain.ClassroomStudent{}, err
+    }
+    if len(list) < 1 {
+        return domain.ClassroomStudent{}, err
+    }
+    res = list[0]
+    return
+}
+
+func (m *csRepository) GetByAcademicAndStudent(ctx context.Context, academic int64, student int64) (res domain.ClassroomStudent, err error) {
+    query := `SELECT 
+        cs.id,
+        cs.classroom_academic_id,
+        cs.student_id,
+        s.srn,
+        s.nsrn,
+        s.name,
+        cs.created_at,
+        cs.updated_at 
+    FROM 
+        classroom_students cs
+    INNER JOIN students s
+        ON s.id = cs.student_id
+    WHERE classroom_academic_id 
+        IN (SELECT id FROM classroom_academics WHERE academic_id=$1)
+    AND student_id=$2`
+
+    list, err := m.fetch(ctx, query, academic, student)
     if err != nil {
         return domain.ClassroomStudent{}, err
     }
