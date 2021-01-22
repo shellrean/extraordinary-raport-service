@@ -4,7 +4,7 @@ import (
     "time"
     "context"
     "strconv"
-    "fmt"
+    "log"
 
     "github.com/shellrean/extraordinary-raport/domain"
     "github.com/shellrean/extraordinary-raport/config"
@@ -13,6 +13,7 @@ import (
 
 type csUsecase struct {
     csRepo			domain.ClassroomStudentRepository
+    csaRepo         domain.ClassroomAcademicRepository
     settingRepo     domain.SettingRepository
 	contextTimeout	time.Duration
 	cfg 			*config.Config
@@ -20,12 +21,14 @@ type csUsecase struct {
 
 func NewClassroomStudentUsecase(
     d domain.ClassroomStudentRepository,
+    m domain.ClassroomAcademicRepository,
     sr domain.SettingRepository,
 	timeout time.Duration,
 	cfg *config.Config,
 ) domain.ClassroomStudentUsecase {
 	return &csUsecase {
         csRepo:			d,
+        csaRepo:        m,
         settingRepo:    sr,
 		contextTimeout: timeout,
 		cfg:			cfg,
@@ -49,6 +52,7 @@ func (u *csUsecase) Fetch(c context.Context, cursor string, num int64) (res []do
     res, err = u.csRepo.Fetch(ctx, decodedCursor, num)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -66,9 +70,25 @@ func (u *csUsecase) GetByClassroomAcademic(c context.Context, classroomAcademicI
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
+    csa, err := u.csaRepo.GetByID(ctx, classroomAcademicID)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return
+    }
+
+    if csa == (domain.ClassroomAcademic{}) {
+        err = domain.ErrClassroomAcademicNotFound
+        return
+    }
+
     res, err = u.csRepo.GetByClassroomAcademic(ctx, classroomAcademicID)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -78,7 +98,6 @@ func (u *csUsecase) GetByClassroomAcademic(c context.Context, classroomAcademicI
     return
 }
 
-
 func (u *csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomStudent, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
@@ -86,13 +105,15 @@ func (u *csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomSt
     res, err = u.csRepo.GetByID(ctx, id)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
         return 
     }
     if res == (domain.ClassroomStudent{}) {
-        return domain.ClassroomStudent{}, domain.ErrNotFound
+        err = domain.ErrClassroomStudentNotFound
+        return
     }
     return
 }
@@ -104,6 +125,7 @@ func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err e
     res, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
 	if err != nil {
 		if u.cfg.Release {
+            log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -111,13 +133,14 @@ func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err e
     }
     
     if res == (domain.Setting{}) {
-		err = domain.ErrNotFound
+		err = domain.ErrSettingNotFound
 		return
     }
     
     id, err := strconv.Atoi(res.Value)
 	if err != nil {
 		if u.cfg.Release {
+            log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -127,6 +150,7 @@ func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err e
     exist, err := u.csRepo.GetByAcademicAndStudent(ctx, int64(id), cs.Student.ID)
 	if err != nil {
 		if u.cfg.Release {
+            log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -134,7 +158,8 @@ func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err e
 	}
 
 	if exist != (domain.ClassroomStudent{}) {
-		return fmt.Errorf("student for this academic already placed")
+        err = domain.ErrClassroomStudentExist
+        return
 	}
 
     cs.CreatedAt = time.Now()
@@ -142,7 +167,9 @@ func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err e
 
     if err = u.csRepo.Store(ctx, cs); err != nil {
         if u.cfg.Release {
-            return domain.ErrServerError
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
         }
         return
     }
@@ -154,10 +181,25 @@ func (u *csUsecase) Update(c context.Context, cs *domain.ClassroomStudent) (err 
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
+    exist, err := u.csRepo.GetByID(ctx, cs.ID)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            return domain.ErrServerError
+        }
+        return
+    }
+
+    if exist == (domain.ClassroomStudent{}) {
+        err = domain.ErrClassroomStudentNotFound
+        return
+    }
+
     cs.UpdatedAt = time.Now()
 
     if err = u.csRepo.Update(ctx, cs); err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             return domain.ErrServerError
         }
         return
@@ -170,9 +212,24 @@ func (u *csUsecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
+    exist, err := u.csRepo.GetByID(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            return domain.ErrServerError
+        }
+        return
+    }
+
+    if exist == (domain.ClassroomStudent{}) {
+        err = domain.ErrClassroomStudentNotFound
+        return
+    }
+
     err = u.csRepo.Delete(ctx, id)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             return domain.ErrServerError
         }
         return

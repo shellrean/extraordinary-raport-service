@@ -3,7 +3,7 @@ package usecase
 import (
     "context"
     "time"
-    "fmt"
+    "log"
     "strings"
 
     "golang.org/x/crypto/bcrypt"
@@ -46,6 +46,7 @@ func (u *userUsecase) Fetch(c context.Context, query string, cursor string, num 
     res, err = u.userRepo.Fetch(ctx, query, decodedCursor, num)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -66,6 +67,7 @@ func (u *userUsecase) Authentication(c context.Context, ur domain.User) (td doma
     user, err := u.userRepo.GetByEmail(ctx, ur.Email)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             return domain.Token{}, domain.ErrServerError
         }
         return domain.Token{}, err
@@ -156,13 +158,14 @@ func (u *userUsecase) GetByID(c context.Context, id int64) (res domain.User, err
     res, err = u.userRepo.GetByID(ctx, id)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
         return 
     }
     if res == (domain.User{}) {
-        return domain.User{}, domain.ErrNotFound
+        return domain.User{}, domain.ErrUserDataNotFound
     }
     return
 }
@@ -174,13 +177,15 @@ func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
     row, err := u.userRepo.GetByEmail(ctx, ur.Email)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
         return
     }
     if row != (domain.User{}) {
-        return fmt.Errorf("Email already taken")
+        err = domain.ErrEmailExist
+        return
     }
 
     password, err := bcrypt.GenerateFromPassword([]byte(ur.Password), 10)
@@ -201,6 +206,7 @@ func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
 
     if err = u.userRepo.Store(ctx, ur); err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             return domain.ErrServerError
         }
         return
@@ -213,16 +219,31 @@ func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
+    res, err := u.userRepo.GetByID(ctx, ur.ID)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    if res == (domain.User{}) {
+        return domain.ErrUserDataNotFound
+    }
+
     row, err := u.userRepo.GetByEmail(ctx, ur.Email)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
         return
     }
     if row != (domain.User{}) && row.ID != ur.ID {
-        return fmt.Errorf("Email already taken")
+        err = domain.ErrEmailExist
+        return
     }
 
     ur.UpdatedAt = time.Now()
@@ -237,6 +258,7 @@ func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
     err = u.userRepo.Update(ctx, &us)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             return domain.ErrServerError
         }
         return
@@ -249,10 +271,24 @@ func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
 func (u *userUsecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
+    
+    res, err := u.userRepo.GetByID(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    if res == (domain.User{}) {
+        return domain.ErrUserDataNotFound
+    }
 
     err = u.userRepo.Delete(ctx, id)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             return domain.ErrServerError
         }
         return
@@ -271,6 +307,7 @@ func (u *userUsecase) DeleteMultiple(c context.Context, query string) (err error
     err = u.userRepo.DeleteMultiple(ctx, ids)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             return domain.ErrServerError
         }
         return

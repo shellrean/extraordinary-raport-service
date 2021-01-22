@@ -97,6 +97,30 @@ var (
 
 	// (1404) classroom subject not found
 	ErrClassroomSubjectNotFound = errors.New("Classroom subject not found")
+
+	// (1405) classroom not found
+	ErrClassroomNotFound = errors.New("Classroom not found")
+
+	// (1406) settint not found
+	ErrSettingNotFound = errors.New("Setting not found")
+
+	// (1407) classroom's student not found
+	ErrClassroomStudentNotFound = errors.New("Classroom's student not found")
+
+	// (1408) student not found
+	ErrStudentNotFound = errors.New("Student not found")
+
+	// (1501) academic year already exist
+	ErrAcademicYearExist = errors.New("Academic year already exist")
+
+	// (1502) classroom academic already exist
+	ErrClassroomAcademicExist = errors.New("Classroom academic already exist")
+
+	// (1503) student for academic already placed
+	ErrClassroomStudentExist = errors.New("Student for academic already placed")
+
+	// (1504) email already taken
+	ErrEmailExist = errors.New("Email address already taken")
 )
 
 var ErrorCode = map[error]int{
@@ -131,4 +155,12 @@ var ErrorCode = map[error]int{
 	ErrSubjectNotFound: 1402,
 	ErrUserDataNotFound: 1403,
 	ErrClassroomSubjectNotFound: 1404,
+	ErrClassroomNotFound: 1405,
+	ErrSettingNotFound: 1406,
+	ErrClassroomStudentNotFound: 1407,
+	ErrStudentNotFound:	1408,
+	ErrAcademicYearExist: 1501,
+	ErrClassroomAcademicExist: 1502,
+	ErrClassroomStudentExist: 1503,
+	ErrEmailExist:		1504,
 }

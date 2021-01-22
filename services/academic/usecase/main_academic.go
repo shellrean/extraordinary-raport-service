@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 	"fmt"
+	"log"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -30,6 +31,7 @@ func (u *academicUsecase) Fetch(c context.Context) (res []domain.Academic, err e
 	res, err = u.academicRepo.Fetch(ctx)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -58,6 +60,7 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 	list, err := u.academicRepo.GetByYearAndSemester(ctx, year, int(semester))
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -65,7 +68,7 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 	}
 
 	if list != (domain.Academic{}) {
-		err = domain.ErrExistData
+		err = domain.ErrAcademicYearExist
 		return
 	}
 
@@ -79,6 +82,7 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 	err = u.academicRepo.Store(ctx, &res)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
             err = domain.ErrServerError
             return
         }

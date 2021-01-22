@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"time"
+	"log"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -39,9 +40,25 @@ func (u *csuUsecase) FetchByClassroom(c context.Context, academicClassroomID int
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
+	ac, err := u.csaRepo.GetByID(ctx, academicClassroomID)
+	if err != nil {
+		if u.cfg.Release {
+			log.Println(err.Error())
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+	
+	if ac == (domain.ClassroomAcademic{}) {
+		err = domain.ErrClassroomAcademicNotFound
+		return
+	}
+
 	res, err = u.csuRepo.FetchByClassroom(ctx, academicClassroomID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -58,6 +75,7 @@ func (u *csuUsecase) Store(c context.Context, cs *domain.ClassroomSubject) (err 
 	csa, err := u.csaRepo.GetByID(ctx, cs.ClassroomAcademic.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -72,6 +90,7 @@ func (u *csuUsecase) Store(c context.Context, cs *domain.ClassroomSubject) (err 
 	su, err := u.subjectRepo.GetByID(ctx, cs.Subject.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -86,6 +105,7 @@ func (u *csuUsecase) Store(c context.Context, cs *domain.ClassroomSubject) (err 
 	usr, err := u.userRepo.GetByID(ctx, cs.Teacher.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -100,6 +120,7 @@ func (u *csuUsecase) Store(c context.Context, cs *domain.ClassroomSubject) (err 
 	exist, err := u.csuRepo.GetByClassroomAndSubject(ctx, cs.ClassroomAcademic.ID, cs.Subject.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -116,6 +137,7 @@ func (u *csuUsecase) Store(c context.Context, cs *domain.ClassroomSubject) (err 
 	err = u.csuRepo.Store(ctx, cs)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -132,6 +154,7 @@ func (u *csuUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomS
 	res, err = u.csuRepo.GetByID(ctx, id)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -153,6 +176,7 @@ func (u *csuUsecase) Update(c context.Context, cs *domain.ClassroomSubject) (err
 	res, err := u.csuRepo.GetByID(ctx, cs.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -167,6 +191,7 @@ func (u *csuUsecase) Update(c context.Context, cs *domain.ClassroomSubject) (err
 	csa, err := u.csaRepo.GetByID(ctx, cs.ClassroomAcademic.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -181,6 +206,7 @@ func (u *csuUsecase) Update(c context.Context, cs *domain.ClassroomSubject) (err
 	su, err := u.subjectRepo.GetByID(ctx, cs.Subject.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -195,6 +221,7 @@ func (u *csuUsecase) Update(c context.Context, cs *domain.ClassroomSubject) (err
 	usr, err := u.userRepo.GetByID(ctx, cs.Teacher.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -209,6 +236,7 @@ func (u *csuUsecase) Update(c context.Context, cs *domain.ClassroomSubject) (err
 	exist, err := u.csuRepo.GetByClassroomAndSubject(ctx, cs.ClassroomAcademic.ID, cs.Subject.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -224,6 +252,7 @@ func (u *csuUsecase) Update(c context.Context, cs *domain.ClassroomSubject) (err
 	err = u.csuRepo.Update(ctx, cs)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -240,6 +269,7 @@ func (u *csuUsecase) Delete(c context.Context, id int64) (err error) {
 	res, err := u.csuRepo.GetByID(ctx, id)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -254,6 +284,7 @@ func (u *csuUsecase) Delete(c context.Context, id int64) (err error) {
 	err = u.csuRepo.Delete(ctx, id)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}

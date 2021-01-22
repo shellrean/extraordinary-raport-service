@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"time"
+	"log"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -41,6 +42,7 @@ func (u *studentUsecase) Fetch(c context.Context, query string, cursor string, n
 	res, err = u.studentRepo.Fetch(ctx, query, decodedCursor, num)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -61,11 +63,18 @@ func (u *studentUsecase) GetByID(c context.Context, id int64) (res domain.Studen
 	res, err = u.studentRepo.GetByID(ctx, id)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
 		return
 	}
+
+	if res == (domain.Student{}) {
+		err = domain.ErrStudentNotFound
+		return
+	}
+
 	return
 }
 
@@ -80,6 +89,7 @@ func (u *studentUsecase) Store(c context.Context, s *domain.Student) (err error)
 	err = u.studentRepo.Store(ctx, s)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -109,6 +119,21 @@ func (u *studentUsecase) Update(c context.Context, s *domain.Student) (err error
 func (u *studentUsecase) Delete(c context.Context, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
+
+	res, err := u.studentRepo.GetByID(ctx, id)
+	if err != nil {
+		if u.cfg.Release {
+			log.Println(err.Error())
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if res == (domain.Student{}) {
+		err = domain.ErrStudentNotFound
+		return
+	}
 
 	err = u.studentRepo.Delete(ctx, id)
 	if err != nil {

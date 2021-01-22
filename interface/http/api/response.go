@@ -45,6 +45,14 @@ var errorCodeToResponseCode = map[error]int {
 	domain.ErrSubjectNotFound:	http.StatusNotFound,
 	domain.ErrUserDataNotFound:	http.StatusNotFound,
 	domain.ErrClassroomSubjectNotFound: http.StatusNotFound,
+	domain.ErrClassroomNotFound: http.StatusNotFound,
+	domain.ErrSettingNotFound: 	http.StatusNotFound,
+	domain.ErrClassroomStudentNotFound: http.StatusNotFound,
+	domain.ErrStudentNotFound:	http.StatusNotFound,
+	domain.ErrAcademicYearExist: http.StatusBadRequest,
+	domain.ErrClassroomAcademicExist: http.StatusBadRequest,
+	domain.ErrClassroomStudentExist: http.StatusBadRequest,
+	domain.ErrEmailExist:		http.StatusBadRequest,
 }
 
 func ResponseSuccess(msg string, data interface{}) response{

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"time"
+	"log"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -31,6 +32,7 @@ func (u *classroomUsecase) Fetch(c context.Context) (res []domain.Classroom, err
 	res, err = u.classRepo.Fetch(ctx)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -47,11 +49,18 @@ func (u *classroomUsecase) GetByID(c context.Context, id int64) (res domain.Clas
 	res, err = u.classRepo.GetByID(ctx, id)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
 		return
 	}
+
+	if res == (domain.Classroom{}) {
+		err = domain.ErrClassroomNotFound
+		return
+	}
+
 	return
 }
 
@@ -63,6 +72,7 @@ func (u *classroomUsecase) Store(c context.Context, cl *domain.Classroom) (err e
 	row, err = u.majorRepo.GetByID(ctx, cl.Major.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -79,6 +89,7 @@ func (u *classroomUsecase) Store(c context.Context, cl *domain.Classroom) (err e
 	err = u.classRepo.Store(ctx, cl)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -91,16 +102,31 @@ func (u *classroomUsecase) Update(c context.Context, cl *domain.Classroom) (err 
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
-	var row domain.Major
-	row, err = u.majorRepo.GetByID(ctx, cl.Major.ID)
+	class, err := u.classRepo.GetByID(ctx, cl.ID)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
 		return
 	}
-	if row == (domain.Major{}) {
+
+	if class == (domain.Classroom{}) {
+		err = domain.ErrClassroomNotFound
+		return
+	}
+
+	major, err := u.majorRepo.GetByID(ctx, cl.Major.ID)
+	if err != nil {
+		if u.cfg.Release {
+			log.Println(err.Error())
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+	if major == (domain.Major{}) {
 		err = domain.ErrNotFound
 		return
 	}
@@ -109,6 +135,7 @@ func (u *classroomUsecase) Update(c context.Context, cl *domain.Classroom) (err 
 	err = u.classRepo.Update(ctx, cl)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}
@@ -121,9 +148,25 @@ func (u *classroomUsecase) Delete(c context.Context, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
+	class, err := u.classRepo.GetByID(ctx, id)
+	if err != nil {
+		if u.cfg.Release {
+			log.Println(err.Error())
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	if class == (domain.Classroom{}) {
+		err = domain.ErrClassroomNotFound
+		return
+	}
+	
 	err = u.classRepo.Delete(ctx, id)
 	if err != nil {
 		if (u.cfg.Release) {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}

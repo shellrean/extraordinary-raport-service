@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"time"
+	"log"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -29,6 +30,7 @@ func (u *majorUsecase) Fetch(c context.Context) (res []domain.Major, err error) 
 	res, err = u.majorRepo.Fetch(ctx)
 	if err != nil {
 		if u.cfg.Release {
+			log.Println(err.Error())
 			err = domain.ErrServerError
 			return
 		}

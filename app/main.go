@@ -122,6 +122,7 @@ func main() {
     classroomStudentRepo := _classroomStudentRepo.NewPostgresClassroomStudentRepository(db)
     classroomStudentUsecase := _classroomStudentUsecase.NewClassroomStudentUsecase(
         classroomStudentRepo, 
+        classroomAcademicRepo,
         settingRepo,
         timeoutContext, 
         cfg,
@@ -159,9 +160,9 @@ func main() {
     httpHandler.NewSettingHandler(r, settingUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
+    fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
     err = r.Run(fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port))
     if err != nil {
         log.Fatal(err)
     }
-    fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
 }

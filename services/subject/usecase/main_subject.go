@@ -2,7 +2,8 @@ package usecase
 
 import (
 	"context"
-	"time"
+    "time"
+    "log"
 
 	"github.com/shellrean/extraordinary-raport/domain"
     "github.com/shellrean/extraordinary-raport/config"
@@ -44,6 +45,7 @@ func (u *subjectUsecase) Fetch(c context.Context, cursor string, num int64) (res
 	res, err = u.subjectRepo.Fetch(ctx, decodedCursor, num)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -65,13 +67,15 @@ func (u *subjectUsecase) GetByID(c context.Context, id int64) (res domain.Subjec
     res, err = u.subjectRepo.GetByID(ctx, id)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
         return 
     }
     if res == (domain.Subject{}) {
-        return domain.Subject{}, domain.ErrNotFound
+        err= domain.ErrSubjectNotFound
+        return
     }
     return
 }
@@ -86,6 +90,7 @@ func (u *subjectUsecase) Store(c context.Context, s *domain.Subject) (err error)
     err = u.subjectRepo.Store(ctx, s)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -98,11 +103,26 @@ func (u *subjectUsecase) Update(c context.Context, s *domain.Subject) (err error
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
+    res, err := u.subjectRepo.GetByID(ctx, s.ID)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    if res == (domain.Subject{}) {
+        err= domain.ErrSubjectNotFound
+        return
+    }
+
     s.UpdatedAt = time.Now()
 
     err = u.subjectRepo.Update(ctx, s)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
@@ -115,9 +135,24 @@ func (u *subjectUsecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
+    res, err := u.subjectRepo.GetByID(ctx, id)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+    if res == (domain.Subject{}) {
+        err= domain.ErrSubjectNotFound
+        return
+    }
+
     err = u.subjectRepo.Delete(ctx, id)
     if err != nil {
         if u.cfg.Release {
+            log.Println(err.Error())
             err = domain.ErrServerError
             return
         }
