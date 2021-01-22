@@ -23,6 +23,7 @@ var errorCodeToResponseCode = map[error]int {
 	domain.ErrTooManyRequest: 	http.StatusTooManyRequests,
 	domain.ErrBadParamInput:	http.StatusBadRequest,
 	domain.ErrExistData:		http.StatusBadRequest,
+	domain.ErrNotExistData:		http.StatusBadRequest,
 	domain.ErrUnauthorized: 	http.StatusUnauthorized,
 	domain.ErrNoAuthorized: 	http.StatusForbidden,
 	domain.ErrUnprocess: 		http.StatusUnprocessableEntity,
@@ -40,6 +41,10 @@ var errorCodeToResponseCode = map[error]int {
 	domain.ErrSocialTypeInvalid:http.StatusUnauthorized,
 	domain.ErrLogin: 			http.StatusUnauthorized,
 	domain.ErrAccountDisable: 	http.StatusUnauthorized,
+	domain.ErrClassroomAcademicNotFound: http.StatusNotFound,
+	domain.ErrSubjectNotFound:	http.StatusNotFound,
+	domain.ErrUserDataNotFound:	http.StatusNotFound,
+	domain.ErrClassroomSubjectNotFound: http.StatusNotFound,
 }
 
 func ResponseSuccess(msg string, data interface{}) response{
