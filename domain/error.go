@@ -30,7 +30,10 @@ var (
 	ErrBadParamInput = errors.New("Bad parameter input")
 
 	// (1008) data is existing
-	ErrExistData = errors.New("Data is exist")
+	ErrExistData = errors.New("Duplicate data need to be unique")
+
+	// (1009) data not exist
+	ErrNotExistData = errors.New("Data not exist")
 
 	// (1101) unauthorized
 	ErrUnauthorized = errors.New("Unauthorized")
@@ -82,6 +85,18 @@ var (
 
 	// (1305) account disabled
 	ErrAccountDisable = errors.New("Your Account is disabled by the admin")
+
+	// (1401) classroom academic not found
+	ErrClassroomAcademicNotFound = errors.New("Classroom academic not found")
+
+	// (1402) subject not found
+	ErrSubjectNotFound = errors.New("Subject not found")
+
+	// (1403) user not found
+	ErrUserDataNotFound = errors.New("User not found")
+
+	// (1404) classroom subject not found
+	ErrClassroomSubjectNotFound = errors.New("Classroom subject not found")
 )
 
 var ErrorCode = map[error]int{
@@ -94,6 +109,7 @@ var ErrorCode = map[error]int{
 	ErrTooManyRequest:	1006,
 	ErrBadParamInput:	1007,
 	ErrExistData:		1008,
+	ErrNotExistData:	1009,
 	ErrUnauthorized:	1101,
 	ErrNoAuthorized:	1102,
 	ErrUnprocess:		1103,
@@ -111,4 +127,8 @@ var ErrorCode = map[error]int{
 	ErrSocialTypeInvalid: 1303,
 	ErrLogin:			1304,
 	ErrAccountDisable:	1305,
+	ErrClassroomAcademicNotFound: 1401,
+	ErrSubjectNotFound: 1402,
+	ErrUserDataNotFound: 1403,
+	ErrClassroomSubjectNotFound: 1404,
 }
