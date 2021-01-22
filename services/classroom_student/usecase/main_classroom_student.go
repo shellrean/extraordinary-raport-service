@@ -181,5 +181,5 @@ func (u *csUsecase) Delete(c context.Context, id int64) (err error) {
 }
 
 func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64) (err error) {
-   
+   return
 }
