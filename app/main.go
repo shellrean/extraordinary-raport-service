@@ -128,7 +128,14 @@ func main() {
     )
 
     classroomSubjectRepo := _classroomSubjectRepo.NewPostgresClassroomSubjectRepository(db)
-    classroomSubjectUsecase := _classroomSubjectUsecase.NewClassroomSubjectUsecase(classroomSubjectRepo, timeoutContext, cfg)
+    classroomSubjectUsecase := _classroomSubjectUsecase.NewClassroomSubjectUsecase(
+        classroomSubjectRepo, 
+        classroomAcademicRepo,
+        subjectRepo,
+        userRepo,
+        timeoutContext, 
+        cfg,
+    )
 
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
