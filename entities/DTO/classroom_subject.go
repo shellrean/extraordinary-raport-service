@@ -9,3 +9,11 @@ type ClassroomSubjectResponse struct {
 	TeacherName 		string 		`json:"teacherName"`
 	MGN					int 		`json:"mgn"`
 }
+
+type ClassroomSubjectRequest struct {
+	ID 					int64		`json:"id"`
+	ClassroomAcademicID int64		`json:"classroomAcademicID" validate:"required"`
+	SubjectID 			int64		`json:"subjectID" validate:"required"`
+	TeacherID			int64 		`json:"teacherID", validate:"required"`		
+	MGN					int 		`json:"mgn"`
+}
