@@ -16,9 +16,9 @@ type ClassroomSubject struct {
 }
 
 type ClassroomSubjectRepository interface {
-	FetchByClassroom(ctx context.Context, class int64) ([]ClassroomSubject, error)
+	FetchByClassroom(ctx context.Context, academicClassroomID int64) ([]ClassroomSubject, error)
 }
 
 type ClassroomSubjectUsecase interface {
-	FetchByClassroom(ctx context.Context, class int64) ([]ClassroomSubject, error)
+	FetchByClassroom(ctx context.Context, academicClassroomID int64) ([]ClassroomSubject, error)
 }
