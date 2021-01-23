@@ -79,6 +79,23 @@ func (u *classroomAcademicUsecase) Fetch(c context.Context) (res []domain.Classr
 	return
 }
 
+func (u *classroomAcademicUsecase) FetchByAcademic(c context.Context, academicID int64) (res []domain.ClassroomAcademic, err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	res, err = u.classAcademicRepo.Fetch(ctx, academicID)
+	if err != nil {
+		if u.cfg.Release {
+			log.Println(err.Error())
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+
+	return
+}
+
 func (u *classroomAcademicUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomAcademic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
