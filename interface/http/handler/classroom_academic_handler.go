@@ -40,7 +40,7 @@ func NewClassAcademicHandler(
     ca.GET("/classroom-academic/:id", handler.Show)
 	ca.POST("/classroom-academic", handler.Store)
 	ca.PUT("/classroom-academic/:id", handler.Update)
-    ca.DELETE("/classroom-academic:id", handler.Delete)
+    ca.DELETE("/classroom-academic/:id", handler.Delete)
     
     ca.GET("/academic/:id", handler.FetchByAcademic)
 }	

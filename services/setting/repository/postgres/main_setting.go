@@ -2,7 +2,8 @@ package postgres
 
 import (
 	"database/sql"
-	"context"
+    "context"
+    "fmt"
 
 	"github.com/lib/pq"
 
@@ -74,5 +75,23 @@ func (m *settingRepository) Fetch(ctx context.Context, names []string) (res []do
         return nil, err
     }
 
+    return
+}
+
+func (m *settingRepository) Update(ctx context.Context, s *domain.Setting) (err error) {
+    query := `UPDATE settings SET value=$1, updated_at=$2
+            WHERE name=$3`
+
+    result, err := m.Conn.ExecContext(ctx, query, s.Value, s.UpdatedAt, s.Name)
+    if err != nil {
+        return err
+    }
+    rows, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+    if rows != 1 {
+        return fmt.Errorf("expected single row affected, got %d rows affected", rows)
+    }
     return
 }

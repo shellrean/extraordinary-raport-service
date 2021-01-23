@@ -104,7 +104,12 @@ func main() {
     classroomUsecase := _classroomUsecase.NewClassroomUsecase(classroomRepo, majorRepo, timeoutContext, cfg)
 
     settingRepo := _settingRepo.NewPostgresSettingRepository(db)
-    settingUsecase := _settingUsecase.NewSettingUsecase(settingRepo, timeoutContext, cfg)
+    settingUsecase := _settingUsecase.NewSettingUsecase(
+        settingRepo, 
+        academicRepo,
+        timeoutContext, 
+        cfg,
+    )
 
     classroomAcademicRepo := _classroomAcademicRepo.NewPostgresClassroomAcademicRepository(db)
     classroomAcademicUsecase := _classroomAcademicUsecase.NewClassroomAcademicUsecase(

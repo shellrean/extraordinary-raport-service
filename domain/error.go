@@ -110,6 +110,9 @@ var (
 	// (1408) student not found
 	ErrStudentNotFound = errors.New("Student not found")
 
+	// (1409) academic not found
+	ErrAcademicNotFound = errors.New("Academic not found")
+
 	// (1501) academic year already exist
 	ErrAcademicYearExist = errors.New("Academic year already exist")
 
@@ -159,6 +162,7 @@ var ErrorCode = map[error]int{
 	ErrSettingNotFound: 1406,
 	ErrClassroomStudentNotFound: 1407,
 	ErrStudentNotFound:	1408,
+	ErrAcademicNotFound: 1409,
 	ErrAcademicYearExist: 1501,
 	ErrClassroomAcademicExist: 1502,
 	ErrClassroomStudentExist: 1503,

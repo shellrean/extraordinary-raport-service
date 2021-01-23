@@ -31,6 +31,7 @@ func NewSettingHandler(r *gin.Engine, m domain.SettingUsecase, cfg *config.Confi
 	setting.Use(handler.mddl.Auth())
 
 	setting.GET("/", handler.Fetch)
+	setting.PUT("/", handler.Update)
 }
 
 func (h *settingHanlder) Fetch(c *gin.Context) {
@@ -68,4 +69,33 @@ func (h *settingHanlder) Fetch(c *gin.Context) {
 	}
     
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
+}
+
+func (h *settingHanlder) Update(c *gin.Context) {
+	var u dto.SettingResponse
+    if err := c.ShouldBindJSON(&u); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+	}
+	
+	setting := domain.Setting {
+		Name:		u.Name,
+		Value:		u.Value,
+	}
+
+	err := h.settUsecase.Update(c, &setting)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+	
+	c.JSON(http.StatusOK, api.ResponseSuccess("update setting success", "")) 
 }
