@@ -3,7 +3,7 @@ package postgres
 import (
     "fmt"
     "context"
-	"database/sql"
+    "database/sql"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 )
@@ -201,5 +201,9 @@ func (m *csRepository) Delete(ctx context.Context, id int64) (err error) {
     if rows != 1 {
         return fmt.Errorf("expected single row affected, got %d rows affected", rows)
     }
+    return
+}
+
+func (m *csRepository) StoreMultiple(ctx context.Context, cas []domain.ClassroomStudent) (err error) {
     return
 }
