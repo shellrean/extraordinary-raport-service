@@ -292,3 +292,55 @@ func (u *csuUsecase) Delete(c context.Context, id int64) (err error) {
 	}
 	return
 }
+
+func (u *csuUsecase) CopyClassroomSubject(c context.Context, ClassroomAcademicID int64, ToClassroomAcademicID int64) (err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	ac, err := u.csaRepo.GetByID(ctx, ToClassroomAcademicID)
+	if err != nil {
+		if u.cfg.Release {
+			log.Println(err.Error())
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+	
+	if ac == (domain.ClassroomAcademic{}) {
+		err = domain.ErrClassroomAcademicNotFound
+		return
+	}
+
+	res, err := u.FetchByClassroom(c, ClassroomAcademicID)
+	if err != nil {
+		if u.cfg.Release {
+			log.Println(err.Error())
+			err = domain.ErrServerError
+			return
+		}
+		return
+	}
+	for _, item := range res {
+		subject := domain.ClassroomSubject{
+			ClassroomAcademic: 	domain.ClassroomAcademic{ID:ToClassroomAcademicID},
+			Subject:			item.Subject,
+			Teacher:			item.Teacher,
+			MGN:				item.MGN,
+			CreatedAt:			time.Now(),
+			UpdatedAt:			time.Now(),
+		}
+
+		err = u.csuRepo.Store(ctx, &subject)
+		if err != nil {
+			if u.cfg.Release {
+				log.Println(err.Error())
+				err = domain.ErrServerError
+				return
+			}
+			return
+		}
+	}
+
+	return
+}

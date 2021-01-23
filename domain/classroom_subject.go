@@ -27,6 +27,7 @@ type ClassroomSubjectRepository interface {
 type ClassroomSubjectUsecase interface {
 	FetchByClassroom(ctx context.Context, academicClassroomID int64) ([]ClassroomSubject, error)
 	Store(ctx context.Context, cs *ClassroomSubject) (error)
+	CopyClassroomSubject(ctx context.Context, academicClassroomID int64, toAcademicClassroomID int64) (error)
 	GetByID(ctx context.Context, id int64) (ClassroomSubject, error)
 	Update(ctx context.Context, cs *ClassroomSubject) (error)
 	Delete(ctx context.Context, idi int64) (error)

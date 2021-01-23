@@ -17,3 +17,8 @@ type ClassroomSubjectRequest struct {
 	TeacherID			int64 		`json:"teacherID", validate:"required"`		
 	MGN					int 		`json:"mgn"`
 }
+
+type ClassroomSubjectCopyRequest struct {
+	ClassroomAcademicID 	int64 	`json:"classroomAcademicID" validate:"required"`
+	ToClassroomAcademicID	int64 	`json:"toClassroomAcademicID" validate:"required"`
+}

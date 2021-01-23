@@ -36,7 +36,8 @@ func NewClassroomSubjectHandler(r *gin.Engine, m domain.ClassroomSubjectUsecase,
     csu.PUT("/classroom-subject/:id", handler.Update)
     csu.DELETE("/classroom-subject/:id", handler.Delete)
 
-	csu.GET("/classroom/:id", handler.FetchByClassroom)
+    csu.GET("/classroom/:id", handler.FetchByClassroom)
+    csu.POST("/copy-subjects", handler.CopyClassroomSubject)
 }
 
 func (h csuHandler) Store(c *gin.Context) {
@@ -253,4 +254,28 @@ func (h csuHandler) FetchByClassroom(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
+}
+
+func (h csuHandler) CopyClassroomSubject(c *gin.Context) {
+    var u dto.ClassroomSubjectCopyRequest
+    if err := c.ShouldBindJSON(&u); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+    }
+
+    err := h.csuUsecase.CopyClassroomSubject(c, u.ClassroomAcademicID, u.ToClassroomAcademicID)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+	
+	c.JSON(http.StatusOK, api.ResponseSuccess("copy classroom subject success", make(map[string]string, 0)))
 }
