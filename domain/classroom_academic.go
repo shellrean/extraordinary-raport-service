@@ -15,7 +15,7 @@ type ClassroomAcademic struct {
 }
 
 type ClassroomAcademicRepository interface {
-	Fetch(ctx context.Context, id int64) ([]ClassroomAcademic, error)
+	Fetch(ctx context.Context, academicID int64) ([]ClassroomAcademic, error)
 	Store(ctx context.Context, ca *ClassroomAcademic) (error)
 	GetByID(ctx context.Context, id int64) (ClassroomAcademic, error)
 	GetByAcademicAndClass(ctx context.Context, a int64, c int64) (ClassroomAcademic, error)
@@ -25,6 +25,7 @@ type ClassroomAcademicRepository interface {
 
 type ClassroomAcademicUsecase interface {
 	Fetch(ctx context.Context) ([]ClassroomAcademic, error)
+	FetchByAcademic(ctx context.Context, academicID int64) ([]ClassroomAcademic, error)
 	GetByID(ctx context.Context, id int64) (ClassroomAcademic, error)
 	Store(ctx context.Context, ca *ClassroomAcademic) (error)
 	Update(ctx context.Context, ca *ClassroomAcademic) (error)
