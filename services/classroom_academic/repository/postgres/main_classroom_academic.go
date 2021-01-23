@@ -56,7 +56,7 @@ func (m *classroomAcademicRepository) fetch(ctx context.Context, query string, a
     return
 }
 
-func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res []domain.ClassroomAcademic, err error) {
+func (m *classroomAcademicRepository) Fetch(ctx context.Context, academicID int64) (res []domain.ClassroomAcademic, err error) {
 	query := `SELECT
 		ca.id,
 		ca.academic_id,
@@ -77,7 +77,7 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, id int64) (res 
 		on m.id = c.major_id
 	WHERE academic_id=$1`
 	
-	res, err = m.fetch(ctx, query, id)
+	res, err = m.fetch(ctx, query, academicID)
     if err != nil {
         return nil, err
     }
