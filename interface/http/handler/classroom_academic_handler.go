@@ -37,10 +37,12 @@ func NewClassAcademicHandler(
 	ca.Use(handler.mddl.Auth())
 
     ca.GET("/", handler.Fetch)
-    ca.GET("/:id", handler.Show)
-	ca.POST("/", handler.Store)
-	ca.PUT("/:id", handler.Update)
-	ca.DELETE("/:id", handler.Delete)
+    ca.GET("/classroom-academic/:id", handler.Show)
+	ca.POST("/classroom-academic", handler.Store)
+	ca.PUT("/classroom-academic/:id", handler.Update)
+    ca.DELETE("/classroom-academic:id", handler.Delete)
+    
+    ca.GET("/academic/:id", handler.FetchByAcademic)
 }	
 
 func (h *classAcademicHandler) Fetch(c *gin.Context) {
@@ -69,6 +71,45 @@ func (h *classAcademicHandler) Fetch(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
+}
+
+func (h *classAcademicHandler) FetchByAcademic(c *gin.Context) {
+    idS := c.Param("id")
+	AcademicID, err := strconv.Atoi(idS)
+	if err != nil {
+		err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+
+    res, err := h.classAcademicUsecase.FetchByAcademic(c, int64(AcademicID))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+	
+	var data []dto.ClassroomAcademicResponse
+	for _, item := range res {
+		ac := dto.ClassroomAcademicResponse{
+			ID:				item.ID,
+			AcademicID:		item.Academic.ID,
+			TeacherID:		item.Teacher.ID,
+            ClassroomID: 	item.Classroom.ID,
+            TeacherName:    item.Teacher.Name,
+            ClassroomName:  item.Classroom.Name,
+            ClassroomMajor: item.Classroom.Major.Name,
+		}
+		data = append(data, ac)
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
 func (h *classAcademicHandler) Show(c *gin.Context) {
