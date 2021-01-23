@@ -43,6 +43,7 @@ func NewClassroomStudentHandler(
     cs.DELETE("/classroom-student/:id", handler.Delete)
     
     cs.GET("/classroom/:id", handler.FetchByClassroom)
+    cs.POST("/copy-students", handler.CopyClassroomStudent)
 }
 
 func (h *csHandler) Fetch(c *gin.Context) {
@@ -315,4 +316,27 @@ func (h *csHandler) Delete(c *gin.Context) {
         return
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("delete classroom's student success", make([]string,0)))
+}
+
+func (h *csHandler) CopyClassroomStudent(c *gin.Context) {
+    var u dto.ClassroomStudentCopyRequest
+    if err := c.ShouldBindJSON(&u); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+    }
+
+    err := h.csUsecase.CopyClassroomStudent(c, u.ClassroomAcademicID, u.ToClassroomAcademicID)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("copy classroom's student success", make([]string,0)))
 }
