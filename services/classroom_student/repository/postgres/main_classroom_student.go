@@ -4,6 +4,7 @@ import (
     "fmt"
     "context"
     "database/sql"
+    "strings"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 )
@@ -205,5 +206,33 @@ func (m *csRepository) Delete(ctx context.Context, id int64) (err error) {
 }
 
 func (m *csRepository) StoreMultiple(ctx context.Context, cas []domain.ClassroomStudent) (err error) {
+    var valueStrings []string
+    var valueArgs []interface{}
+
+    for i, item := range cas {
+        valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d)", (4*i+1), (4*i+2), (4*i+3), (4*i+4)))
+
+        valueArgs = append(valueArgs, item.ClassroomAcademic.ID)
+        valueArgs = append(valueArgs, item.Student.ID)
+        valueArgs = append(valueArgs, item.CreatedAt)
+        valueArgs = append(valueArgs, item.UpdatedAt)
+    }
+
+    query := `INSERT INTO classroom_students (classroom_academic_id, student_id,created_at, updated_at)
+        VALUES %s`
+    query = fmt.Sprintf(query, strings.Join(valueStrings, ","))
+    tx, err := m.Conn.Begin()
+    if err != nil {
+        return
+    }
+
+    _, err = tx.ExecContext(ctx, query, valueArgs...)
+    if err != nil {
+        _ = tx.Rollback()
+        return
+    }
+    
+    err = tx.Commit()
+    
     return
 }

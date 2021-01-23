@@ -237,6 +237,21 @@ func (u *csUsecase) Delete(c context.Context, id int64) (err error) {
     return
 }
 
+func (u *csUsecase) chunkSlice(slice []domain.ClassroomStudent, chunkSize int) [][]domain.ClassroomStudent {
+	var chunks [][]domain.ClassroomStudent
+	for i := 0; i < len(slice); i += chunkSize {
+		end := i + chunkSize
+
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		chunks = append(chunks, slice[i:end])
+	}
+
+	return chunks
+}
+
 func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64, toClassroomAcademicID int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
@@ -276,6 +291,7 @@ func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID 
         return 
     }
 
+    var students []domain.ClassroomStudent
     for _, item := range res {
         student := domain.ClassroomStudent{
             ClassroomAcademic:  domain.ClassroomAcademic{
@@ -285,8 +301,13 @@ func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID 
             CreatedAt: time.Now(),
             UpdatedAt: time.Now(),
         }
+        students = append(students, student)
+    }
 
-        if err = u.csRepo.Store(ctx, &student); err != nil {
+    chunk_students := u.chunkSlice(students, 100)
+    for _, students := range chunk_students {
+        err = u.csRepo.StoreMultiple(ctx, students)
+        if err != nil {
             if u.cfg.Release {
                 log.Println(err.Error())
                 err = domain.ErrServerError
