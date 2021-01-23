@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 )
@@ -194,5 +195,39 @@ func (m *csuRepo) Delete(ctx context.Context, id int64) (err error) {
     if rows != 1 {
         return fmt.Errorf("expected single row affected, got %d rows affected", rows)
     }
+    return
+}
+
+func (m *csuRepo) StoreMultiple(ctx context.Context, cs []domain.ClassroomSubject) (err error) {
+	var valueStrings []string
+    var valueArgs []interface{}
+
+    for i, item := range cs {
+        valueStrings = append(valueStrings, fmt.Sprintf("($%d,$%d,$%d,$%d,$%d, $%d)", (6*i+1), (6*i+2), (6*i+3), (6*i+4), (6*i+5), (6*i+6)))
+
+		valueArgs = append(valueArgs, item.ClassroomAcademic.ID)
+		valueArgs = append(valueArgs, item.Subject.ID)
+		valueArgs = append(valueArgs, item.Teacher.ID)
+		valueArgs = append(valueArgs, item.MGN)
+        valueArgs = append(valueArgs, item.CreatedAt)
+        valueArgs = append(valueArgs, item.UpdatedAt)
+	}
+	
+	query := `INSERT INTO classroom_subjects (classroom_academic_id, subject_id, teacher_id, mgn, created_at, updated_at)
+		VALUES %s`
+	query = fmt.Sprintf(query, strings.Join(valueStrings, ","))
+	tx, err := m.Conn.Begin()
+    if err != nil {
+        return
+    }
+
+    _, err = tx.ExecContext(ctx, query, valueArgs...)
+    if err != nil {
+        _ = tx.Rollback()
+        return
+    }
+    
+    err = tx.Commit()
+    
     return
 }

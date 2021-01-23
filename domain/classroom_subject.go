@@ -18,6 +18,7 @@ type ClassroomSubject struct {
 type ClassroomSubjectRepository interface {
 	FetchByClassroom(ctx context.Context, academicClassroomID int64) ([]ClassroomSubject, error)
 	Store(ctx context.Context, cs *ClassroomSubject) (error)
+	StoreMultiple(ctx context.Context, cs []ClassroomSubject) (error)
 	GetByID(ctx context.Context, id int64) (ClassroomSubject, error)
 	GetByClassroomAndSubject(ctx context.Context, academicClassroomID int64, subjectID int64) (ClassroomSubject, error)
 	Update(ctx context.Context, cs *ClassroomSubject) (error)

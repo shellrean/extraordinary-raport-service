@@ -217,7 +217,6 @@ func (m *csRepository) StoreMultiple(ctx context.Context, cas []domain.Classroom
         valueArgs = append(valueArgs, item.CreatedAt)
         valueArgs = append(valueArgs, item.UpdatedAt)
     }
-
     query := `INSERT INTO classroom_students (classroom_academic_id, student_id,created_at, updated_at)
         VALUES %s`
     query = fmt.Sprintf(query, strings.Join(valueStrings, ","))

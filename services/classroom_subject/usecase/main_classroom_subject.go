@@ -293,6 +293,21 @@ func (u *csuUsecase) Delete(c context.Context, id int64) (err error) {
 	return
 }
 
+func (u *csuUsecase) chunkSlice(slice []domain.ClassroomSubject, chunkSize int) [][]domain.ClassroomSubject {
+	var chunks [][]domain.ClassroomSubject
+	for i := 0; i < len(slice); i += chunkSize {
+		end := i + chunkSize
+
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		chunks = append(chunks, slice[i:end])
+	}
+
+	return chunks
+}
+
 func (u *csuUsecase) CopyClassroomSubject(c context.Context, ClassroomAcademicID int64, ToClassroomAcademicID int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
@@ -321,6 +336,8 @@ func (u *csuUsecase) CopyClassroomSubject(c context.Context, ClassroomAcademicID
 		}
 		return
 	}
+
+	var subjects []domain.ClassroomSubject
 	for _, item := range res {
 		subject := domain.ClassroomSubject{
 			ClassroomAcademic: 	domain.ClassroomAcademic{ID:ToClassroomAcademicID},
@@ -331,16 +348,21 @@ func (u *csuUsecase) CopyClassroomSubject(c context.Context, ClassroomAcademicID
 			UpdatedAt:			time.Now(),
 		}
 
-		err = u.csuRepo.Store(ctx, &subject)
-		if err != nil {
-			if u.cfg.Release {
-				log.Println(err.Error())
-				err = domain.ErrServerError
-				return
-			}
-			return
-		}
+		subjects = append(subjects, subject)
 	}
 
+	chunk_subjects := u.chunkSlice(subjects, 100)
+    for _, subjects := range chunk_subjects {
+        err = u.csuRepo.StoreMultiple(ctx, subjects)
+        if err != nil {
+            if u.cfg.Release {
+                log.Println(err.Error())
+                err = domain.ErrServerError
+                return
+            }
+            return
+        }
+	}
+	
 	return
 }
