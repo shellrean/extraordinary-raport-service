@@ -237,6 +237,63 @@ func (u *csUsecase) Delete(c context.Context, id int64) (err error) {
     return
 }
 
-func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64) (err error) {
-   return
+func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64, toClassroomAcademicID int64) (err error) {
+    ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+    defer cancel()
+
+    ca, err := u.csaRepo.GetByID(ctx, classroomAcademicID)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return
+    }
+
+    if ca == (domain.ClassroomAcademic{}) {
+        err = domain.ErrClassroomAcademicNotFound
+        return
+    }
+
+    ca, err = u.csaRepo.GetByID(ctx, toClassroomAcademicID)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return
+    }
+
+    if ca == (domain.ClassroomAcademic{}) {
+        err = domain.ErrClassroomAcademicNotFound
+        return
+    }
+
+    res, err := u.GetByClassroomAcademic(ctx, classroomAcademicID)
+    if err != nil {
+        return 
+    }
+
+    for _, item := range res {
+        student := domain.ClassroomStudent{
+            ClassroomAcademic:  domain.ClassroomAcademic{
+                ID: toClassroomAcademicID,
+            },
+            Student: item.Student,
+            CreatedAt: time.Now(),
+            UpdatedAt: time.Now(),
+        }
+
+        if err = u.csRepo.Store(ctx, &student); err != nil {
+            if u.cfg.Release {
+                log.Println(err.Error())
+                err = domain.ErrServerError
+                return
+            }
+            return
+        }
+    }
+    return
 }
