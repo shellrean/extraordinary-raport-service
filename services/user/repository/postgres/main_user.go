@@ -5,6 +5,7 @@ import (
     "database/sql"
     "fmt"
     "github.com/lib/pq"
+    "strings"
 
     "github.com/shellrean/extraordinary-raport/domain"
 )
@@ -105,6 +106,43 @@ func (m *postgresUserRepository) Store(ctx context.Context, u *domain.User) (err
     if err != nil {
         return err
     }
+    
+    return
+}
+
+func (m *postgresUserRepository) StoreMultiple(ctx context.Context, us []domain.User) (err error) {
+    var valueStrings []string
+    var valueArgs []interface{}
+
+    for i, item := range us {
+        valueStrings = append(valueStrings, fmt.Sprintf(
+            "($%d, $%d, $%d, $%d, $%d, $%d)", 
+            (6*i+1), (6*i+2), (6*i+3), (6*i+4), (6*i+5), (6*i+6),
+        ))
+
+        valueArgs = append(valueArgs, item.Name)
+        valueArgs = append(valueArgs, item.Email)
+        valueArgs = append(valueArgs, item.Password)
+        valueArgs = append(valueArgs, item.Role)
+        valueArgs = append(valueArgs, item.CreatedAt)
+        valueArgs = append(valueArgs, item.UpdatedAt)
+    }
+    
+    query := `INSERT INTO users (name, email, password, role,created_at, updated_at) VALUES %s`
+    query = fmt.Sprintf(query, strings.Join(valueStrings, ","))
+
+    tx, err := m.Conn.Begin()
+    if err != nil {
+        return
+    }
+
+    _, err = tx.ExecContext(ctx, query, valueArgs...)
+    if err != nil {
+        _ = tx.Rollback()
+        return
+    }
+    
+    err = tx.Commit()
     
     return
 }
