@@ -49,6 +49,8 @@ func main() {
     }
     cfg.JWTAccessKey = "secret"
     cfg.JWTRefreshKey = "refreshsecret"
+    cfg.Storage.TmpPath = "/storage/app/_tmp"
+    cfg.Storage.PublicPath = "/storage/app/public"
 
     dsn := fmt.Sprintf(
         "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s",
