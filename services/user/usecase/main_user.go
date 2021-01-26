@@ -215,6 +215,38 @@ func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
     return
 }
 
+func (u *userUsecase) ImportFromExcel(c context.Context, file string) (err error) {
+    ctx, cancel := context.WithTimeout(c, time.Duration(4) * time.Second)
+    defer cancel()
+
+    res, err := helper.ReadUserFileExcel(ctx, file)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+
+    if res == nil {
+        err = domain.ErrFileNotAllowed
+        return
+    }
+
+    err = u.userRepo.StoreMultiple(ctx, res)
+    if err != nil {
+        if u.cfg.Release {
+            log.Println(err.Error())
+            err = domain.ErrServerError
+            return
+        }
+        return 
+    }
+
+    return
+}
+
 func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
