@@ -3,12 +3,14 @@ module github.com/shellrean/extraordinary-raport
 go 1.15
 
 require (
+	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/go-redis/redis/v8 v8.4.4
 	github.com/golang/protobuf v1.4.3 // indirect
+	github.com/google/uuid v1.2.0
 	github.com/lib/pq v1.3.0
 	github.com/myesui/uuid v1.0.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
