@@ -1,3 +1,5 @@
 vendor/
 bin/
 config.yml
+storage/app/_tmp/*
+storage/app/public/*
