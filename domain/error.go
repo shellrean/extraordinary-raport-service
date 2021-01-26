@@ -53,6 +53,9 @@ var (
 	// (1106) validation error
 	ErrValidation = errors.New("Validation error")
 
+	// (1107) file not allowed
+	ErrFileNotAllowed = errors.New("File not allowed")
+
 	// (1201) session expired
 	ErrSessExpired = errors.New("Your session is expired, please login again")
 
@@ -143,6 +146,7 @@ var ErrorCode = map[error]int{
 	ErrAuthFailed:		1104,
 	ErrNotFound:		1105,
 	ErrValidation:		1106,
+	ErrFileNotAllowed:	1107,
 	ErrSessExpired:		1201,
 	ErrSessVerifation:	1202,
 	ErrSessDecode:		1203,
