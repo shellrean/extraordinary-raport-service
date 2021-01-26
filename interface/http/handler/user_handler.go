@@ -4,7 +4,11 @@ import (
     "net/http"
     "strings"
     "strconv"
+    "os"
+    "io"
+    "path/filepath"
 
+    "github.com/google/uuid"
     "github.com/gin-gonic/gin"
     "github.com/go-playground/validator/v10"
 
@@ -38,6 +42,7 @@ func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mdd
     user.PUT("user/:id", handler.Update)
     user.DELETE("user/:id", handler.Delete)
     user.DELETE("delete", handler.DeleteMultiple)
+    user.POST("import", handler.Import)
 
     r.POST("/auth", handler.Autheticate)
     r.POST("/refresh-token", handler.RefreshToken)
@@ -250,6 +255,67 @@ func (h *UserHandler) Store(c *gin.Context) {
         Role:   user.Role,
     }
     c.JSON(http.StatusOK, api.ResponseSuccess("create user success", data))
+}
+
+func (h *UserHandler) Import(c *gin.Context) {
+    file, header, err := c.Request.FormFile("file")
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+    }
+
+    filename := header.Filename
+
+    fileExtension := filepath.Ext(filename)
+    if (fileExtension != ".xls" && fileExtension != ".xlsx") {
+        err_code := helper.GetErrorCode(domain.ErrFileNotAllowed)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrFileNotAllowed.Error(), err_code),
+        )
+        return
+    }
+
+    fullPathFile := filepath.Join("storage", "app", "_tmp", uuid.NewString()+filename)
+
+    out, err := os.Create(fullPathFile)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrServerError)
+        c.JSON(
+            http.StatusInternalServerError,
+            api.ResponseError(domain.ErrServerError.Error(), err_code),
+        )
+        return
+    }
+    defer os.Remove(fullPathFile)
+    defer out.Close()
+
+    _, err = io.Copy(out, file)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrServerError)
+        c.JSON(
+            http.StatusInternalServerError,
+            api.ResponseError(domain.ErrServerError.Error(), err_code),
+        )
+        return
+    }
+
+    err = h.userUsecase.ImportFromExcel(c, fullPathFile)
+    
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    c.JSON(http.StatusOK, api.ResponseSuccess("import user success", nil))
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
