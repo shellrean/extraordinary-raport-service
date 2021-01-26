@@ -30,6 +30,7 @@ var errorCodeToResponseCode = map[error]int {
 	domain.ErrAuthFailed: 		http.StatusUnauthorized,
 	domain.ErrNotFound: 		http.StatusNotFound,
 	domain.ErrValidation: 		http.StatusLengthRequired,
+	domain.ErrFileNotAllowed:	http.StatusBadRequest,
 	domain.ErrSessExpired: 		http.StatusUnauthorized,
 	domain.ErrSessVerifation: 	http.StatusUnauthorized,
 	domain.ErrSessDecode: 		http.StatusUnauthorized,
