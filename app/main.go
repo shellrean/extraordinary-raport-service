@@ -33,6 +33,8 @@ import (
     _classroomStudentUsecase "github.com/shellrean/extraordinary-raport/services/classroom_student/usecase"
     _classroomSubjectRepo "github.com/shellrean/extraordinary-raport/services/classroom_subject/repository/postgres"
     _classroomSubjectUsecase "github.com/shellrean/extraordinary-raport/services/classroom_subject/usecase"
+    _classroomSubjectPlanRepo "github.com/shellrean/extraordinary-raport/services/classroom_subject_plan/repository/postgres"
+    _classroomSubjectPlanUsecase "github.com/shellrean/extraordinary-raport/services/classroom_subject_plan/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     httpHandler "github.com/shellrean/extraordinary-raport/interface/http/handler"
 )
@@ -145,6 +147,16 @@ func main() {
         cfg,
     )
 
+    classroomSubjectPlanRepo := _classroomSubjectPlanRepo.NewPostgresClassroomSubjectPlanRepository(db)
+    classroomSubjectPlanUsecase := _classroomSubjectPlanUsecase.NewClassroomSubjectPlanUsecase(
+        classroomSubjectPlanRepo,
+        userRepo,
+        classroomSubjectRepo,
+        classroomAcademicRepo,
+        timeoutContext,
+        cfg,
+    )
+
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
     }
@@ -165,6 +177,7 @@ func main() {
     httpHandler.NewClassroomStudentHandler(r, classroomStudentUsecase, cfg, mddl)
     httpHandler.NewClassroomSubjectHandler(r, classroomSubjectUsecase, cfg, mddl)
     httpHandler.NewSettingHandler(r, settingUsecase, cfg, mddl)
+    httpHandler.NewClassroomSubjectPlanHandler(r, classroomSubjectPlanUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
