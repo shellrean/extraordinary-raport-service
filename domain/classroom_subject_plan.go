@@ -2,6 +2,7 @@ package domain
 
 import (
 	"time"
+	"context"
 )
 
 const (
@@ -17,9 +18,23 @@ type ClassroomSubjectPlan struct {
 	Name 		string
 	Desc 		string
 	Teacher 	User
+	Subject 	ClassroomSubject
 	Classroom 	ClassroomAcademic
 	CountPlan 	uint
 	MaxPoint 	uint
 	CreatedAt 	time.Time
 	UpdatedAt 	time.Time
+}
+
+type ClassroomSubjectPlanRepository interface {
+	GetByID(ctx context.Context, id int64) (ClassroomSubjectPlan, error)
+	Store(ctx context.Context, csp *ClassroomSubjectPlan) (error)
+	Update(ctx context.Context, csp *ClassroomSubjectPlan) (error)
+	Delete(ctx context.Context, id int64) (error)
+}
+
+type ClassroomSubjectPlanUsecase interface {
+	Store(ctx context.Context, csp *ClassroomSubjectPlan) (error)
+	Update(ctx context.Context, csp *ClassroomSubjectPlan) (error)
+	Delete(ctx context.Context, id int64) (error)
 }
