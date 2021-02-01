@@ -62,7 +62,8 @@ func (m *GoMiddleware) Auth() gin.HandlerFunc{
 			return
 		}
 		data := helper.ExtractTokenMetadata(token)
-		c.Set("user-meta", data)
+
+		c.Set("user_id", int64(data["user_id"].(float64)))
 		c.Next()
 	}
 }
