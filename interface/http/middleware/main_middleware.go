@@ -62,7 +62,15 @@ func (m *GoMiddleware) Auth() gin.HandlerFunc{
 			return
 		}
 		data := helper.ExtractTokenMetadata(token)
-
+		defer func() {
+			if err := recover(); err != nil {
+				c.AbortWithStatusJSON(
+					api.GetHttpStatusCode(domain.ErrSessVerifation),
+					api.ResponseError(domain.ErrSessVerifation.Error(), helper.GetErrorCode(domain.ErrSessVerifation)),
+				)
+				return
+			}
+		}()
 		c.Set("user_id", int64(data["user_id"].(float64)))
 		c.Next()
 	}
