@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"github.com/gin-gonic/gin"
 
 	"github.com/shellrean/extraordinary-raport/domain"
@@ -64,6 +65,7 @@ func (m *GoMiddleware) Auth() gin.HandlerFunc{
 		data := helper.ExtractTokenMetadata(token)
 		defer func() {
 			if err := recover(); err != nil {
+				log.Println(err)
 				c.AbortWithStatusJSON(
 					api.GetHttpStatusCode(domain.ErrSessVerifation),
 					api.ResponseError(domain.ErrSessVerifation.Error(), helper.GetErrorCode(domain.ErrSessVerifation)),

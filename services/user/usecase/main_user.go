@@ -74,7 +74,7 @@ func (u *userUsecase) Authentication(c context.Context, ur domain.User) (td doma
     }
 
     if user == (domain.User{}) {
-        return domain.Token{}, domain.ErrUserNotFound
+        return domain.Token{}, domain.ErrCredential
     }
 
     err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(ur.Password))
