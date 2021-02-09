@@ -63,7 +63,14 @@ func VerifyToken(key string, tokenString string) (*jwt.Token, error) {
 		}
 		return []byte(key), nil
 	})
+
 	if err != nil {
+		v, _ := err.(*jwt.ValidationError)
+
+		if v.Errors == jwt.ValidationErrorExpired{
+			return nil, domain.ErrSessExpired
+		}
+
 		return nil, domain.ErrSessVerifation
 	}
 	return token, nil
