@@ -29,6 +29,26 @@ func NewClassroomSubjectPlanUsecase(m domain.ClassroomSubjectPlanRepository, m2 
 	}
 }
 
+func (u csPlanUsecase) getError(err error) (error) {
+	if u.cfg.Release {
+		log.Println(err)
+		return domain.ErrServerError
+	}
+	return err
+}
+
+func (u csPlanUsecase) Fetch(c context.Context, query string, userID int64, classID int64) (res []domain.ClassroomSubjectPlan, err error) {
+	ctx, cancel := context.WithTimeout(c, u.timeout)
+	defer cancel()
+
+	res, err = u.cspRepo.FetchByTeacherAndClassroom(ctx, userID, classID)
+	if err != nil {
+		return nil, u.getError(err)
+	}
+
+	return
+}
+
 func (u csPlanUsecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
