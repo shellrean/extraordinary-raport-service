@@ -170,6 +170,11 @@ func (u *userUsecase) GetByID(c context.Context, id int64) (res domain.User, err
     return
 }
 
+func (u *userUsecase) UserCurrentLogin(c context.Context, userID int64) (res domain.User, err error) {
+    res, err = u.GetByID(c, userID)
+    return
+}
+
 func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
@@ -298,7 +303,6 @@ func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
 
     return
 }
-
 
 func (u *userUsecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
