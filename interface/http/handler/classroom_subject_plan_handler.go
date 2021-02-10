@@ -31,9 +31,51 @@ func NewClassroomSubjectPlanHandler(r *gin.Engine, m domain.ClassroomSubjectPlan
 	csp := r.Group("/classroom-subject-plans")
 	csp.Use(handler.mddl.Auth())
 
+    csp.POST("/", handler.Fetch)
 	csp.POST("/classroom-subject-plan", handler.Store)
 	csp.PUT("/classroom-subject-plan", handler.Update)
 	csp.DELETE("/classroom-subject-plan/:id", handler.Delete)
+}
+
+func (h cspHandler) Fetch(c *gin.Context) {
+    var u dto.ClassroomSubjectPlanFetchRequest
+    if err := c.ShouldBindJSON(&u); err != nil {
+        err_code := helper.GetErrorCode(domain.ErrUnprocess)
+        c.JSON(
+            http.StatusUnprocessableEntity,
+            api.ResponseError(domain.ErrUnprocess.Error(), err_code),
+        )
+        return
+    }
+
+    res, err := h.cspUsecase.Fetch(c, u.Query, u.TeacherID, u.ClassroomID)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    var data []dto.ClassroomSubjectPlanRequest
+    for _, item := range res {
+        csp := dto.ClassroomSubjectPlanRequest {
+            ID: item.ID,
+            Type: item.Type,
+            Name: item.Name,
+            Desc: item.Desc,
+            TeacherID: item.Teacher.ID,
+            SubjectID: item.Subject.ID,
+            ClassroomID: item.Classroom.ID,
+            CountPlan: item.CountPlan,
+            MaxPoint: item.MaxPoint,
+        }
+
+        data = append(data, csp)
+    }
+
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
 func (h cspHandler) Store(c *gin.Context) {
