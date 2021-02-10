@@ -43,6 +43,7 @@ func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mdd
     user.DELETE("user/:id", handler.Delete)
     user.DELETE("delete", handler.DeleteMultiple)
     user.POST("import", handler.Import)
+    user.GET("auth-current", handler.CurrentLogin)
 
     r.POST("/auth", handler.Autheticate)
     r.POST("/refresh-token", handler.RefreshToken)
@@ -169,6 +170,28 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
     }
     
     c.JSON(http.StatusOK, api.ResponseSuccess("success",data))
+}
+
+func (h *UserHandler) CurrentLogin(c *gin.Context) {
+    userID := c.GetInt64("user_id")
+
+    res, err := h.userUsecase.UserCurrentLogin(c, userID)
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+    
+    data := dto.UserResponse {
+        ID: res.ID,
+        Name: res.Name,
+        Email: res.Email,
+        Role: res.Role,
+    }
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
 func (h *UserHandler) Show(c *gin.Context) {
