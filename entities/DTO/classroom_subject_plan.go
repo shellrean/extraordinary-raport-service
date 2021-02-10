@@ -11,3 +11,9 @@ type ClassroomSubjectPlanRequest struct {
 	CountPlan 	uint 		`json:"countPlan" validate:"required"`
 	MaxPoint 	uint 		`json:"maxPoint" validate:"required"`
 }
+
+type ClassroomSubjectPlanFetchRequest struct {
+    ClassroomID int64       `json:"classroomID"`
+    TeacherID   int64       `json:"teacherID"`
+    Query       string      `json:"query"`
+}
