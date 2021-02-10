@@ -28,12 +28,16 @@ type ClassroomSubjectPlan struct {
 
 type ClassroomSubjectPlanRepository interface {
 	GetByID(ctx context.Context, id int64) (ClassroomSubjectPlan, error)
+	FetchByClassroom(ctx context.Context, id int64) ([]ClassroomSubjectPlan, error)
+	FetchByTeacher(ctx context.Context, id int64) ([]ClassroomSubjectPlan, error)
+	FetchByTeacherAndClassroom(ctx context.Context, tid int64, cid int64) ([]ClassroomSubjectPlan, error)
 	Store(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Update(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Delete(ctx context.Context, id int64) (error)
 }
 
 type ClassroomSubjectPlanUsecase interface {
+	Fetch(ctx context.Context, query string, userID int64, classID int64) ([]ClassroomSubjectPlan, error)
 	Store(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Update(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Delete(ctx context.Context, id int64) (error)
