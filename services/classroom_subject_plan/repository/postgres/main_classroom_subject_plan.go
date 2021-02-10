@@ -105,6 +105,81 @@ func (m csPlanRepo) GetByID(ctx context.Context, id int64) (res domain.Classroom
 	return
 }
 
+func (m csPlanRepo) FetchByClassroom(ctx context.Context, id int64) (res []domain.ClassroomSubjectPlan, err error) {
+	query := `
+	SELECT 
+		id,
+		type, 
+		name, 
+		description, 
+		teacher_id,
+		classroom_subject_id,
+		classroom_academic_id,
+		count_plan,
+		max_point,
+		created_at,
+		updated_at
+	FROM classroom_subject_plans
+	WHERE classroom_academic_id=$1`
+
+	res, err = m.fetch(ctx, query, id)
+	if err != nil {
+		return
+	} 
+
+	return
+}
+
+func (m csPlanRepo) FetchByTeacher(ctx context.Context, id int64) (res []domain.ClassroomSubjectPlan, err error) {
+	query := `
+	SELECT 
+		id,
+		type, 
+		name, 
+		description, 
+		teacher_id,
+		classroom_subject_id,
+		classroom_academic_id,
+		count_plan,
+		max_point,
+		created_at,
+		updated_at
+	FROM classroom_subject_plans
+	WHERE teacher_id=$1`
+
+	res, err = m.fetch(ctx, query, id)
+	if err != nil {
+		return
+	} 
+
+	return
+}
+
+func (m csPlanRepo) FetchByTeacherAndClassroom(ctx context.Context, tid int64, cid int64) (res []domain.ClassroomSubjectPlan, err error) {
+	query := `
+	SELECT 
+		id,
+		type, 
+		name, 
+		description, 
+		teacher_id,
+		classroom_subject_id,
+		classroom_academic_id,
+		count_plan,
+		max_point,
+		created_at,
+		updated_at
+	FROM classroom_subject_plans
+	WHERE teacher_id=$1 AND classroom_academic_id=$2`
+
+	res, err = m.fetch(ctx, query, tid, cid)
+	if err != nil {
+		return
+	} 
+
+	return
+}
+
 func (m csPlanRepo) Update(ctx context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
 	query := `UPDATE classroom_subject_plans SET type=$1, name=$2, description=$3, teacher_id=$4, classroom_subject_id=$5, classroom_academic_id=$6, count_plan=$7, max_point=$8, updated_at=$9 WHERE id=$10`
 
