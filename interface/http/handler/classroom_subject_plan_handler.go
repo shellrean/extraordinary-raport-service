@@ -31,10 +31,10 @@ func NewClassroomSubjectPlanHandler(r *gin.Engine, m domain.ClassroomSubjectPlan
 	csp := r.Group("/classroom-subject-plans")
 	csp.Use(handler.mddl.Auth())
 
-    csp.POST("/", handler.Fetch)
-	csp.POST("/classroom-subject-plan", handler.Store)
-	csp.PUT("/classroom-subject-plan", handler.Update)
-	csp.DELETE("/classroom-subject-plan/:id", handler.Delete)
+    csp.POST("/", handler.mddl.MustRole([]int{domain.RoleTeacher, domain.RoleAdmin}), handler.Fetch)
+	csp.POST("/classroom-subject-plan", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Store)
+	csp.PUT("/classroom-subject-plan", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Update)
+	csp.DELETE("/classroom-subject-plan/:id", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Delete)
 }
 
 func (h cspHandler) Fetch(c *gin.Context) {
@@ -48,6 +48,13 @@ func (h cspHandler) Fetch(c *gin.Context) {
         return
     }
 
+    currentRoleUser := c.GetInt("role")
+    currentUserID := c.GetInt64("user_id")
+
+    if currentRoleUser == domain.RoleTeacher {
+        u.TeacherID = currentUserID
+    }
+
     res, err := h.cspUsecase.Fetch(c, u.Query, u.TeacherID, u.ClassroomID)
     if err != nil {
         err_code := helper.GetErrorCode(err)
@@ -58,15 +65,16 @@ func (h cspHandler) Fetch(c *gin.Context) {
         return
     }
 
-    var data []dto.ClassroomSubjectPlanRequest
+    var data []dto.ClassroomSubjectPlanResponse
     for _, item := range res {
-        csp := dto.ClassroomSubjectPlanRequest {
+        csp := dto.ClassroomSubjectPlanResponse {
             ID: item.ID,
             Type: item.Type,
             Name: item.Name,
             Desc: item.Desc,
             TeacherID: item.Teacher.ID,
             SubjectID: item.Subject.ID,
+            SubjectName: item.Subject.Subject.Name,
             ClassroomID: item.Classroom.ID,
             CountPlan: item.CountPlan,
             MaxPoint: item.MaxPoint,
