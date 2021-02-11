@@ -74,6 +74,24 @@ func (m *GoMiddleware) Auth() gin.HandlerFunc{
 			}
 		}()
 		c.Set("user_id", int64(data["user_id"].(float64)))
+		c.Set("role", int(data["role"].(float64)))
 		c.Next()
+	}
+
+}
+func (m *GoMiddleware) MustRole(roles []int) gin.HandlerFunc{
+	return func(c *gin.Context) {
+		userRole := c.GetInt("role")
+		for _, role := range roles {
+			if userRole == role {
+				c.Next()
+				return
+			}
+		}
+		c.AbortWithStatusJSON(
+			api.GetHttpStatusCode(domain.ErrNoAuthorized),
+			api.ResponseError(domain.ErrNoAuthorized.Error(), helper.GetErrorCode(domain.ErrNoAuthorized)),
+		)
+		return
 	}
 }
