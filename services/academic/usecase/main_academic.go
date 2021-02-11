@@ -24,24 +24,27 @@ func NewAcademicUsecase(d domain.AcademicRepository, timeout time.Duration, cfg 
 	}	
 }
 
-func (u *academicUsecase) Fetch(c context.Context) (res []domain.Academic, err error) {
+func (u academicUsecase) getError(err error) (error) {
+	if u.cfg.Release {
+		log.Println(err.Error())
+		return domain.ErrServerError
+	}
+	return err
+}
+
+func (u academicUsecase) Fetch(c context.Context) (res []domain.Academic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
 	res, err = u.academicRepo.Fetch(ctx)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+		return nil, u.getError(err)
 	}
 
 	return
 }
 
-func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err error) {
+func (u academicUsecase) Generate(c context.Context) (res domain.Academic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -59,12 +62,7 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 	}
 	list, err := u.academicRepo.GetByYearAndSemester(ctx, year, int(semester))
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+		return domain.Academic{}, u.getError(err)
 	}
 
 	if list != (domain.Academic{}) {
@@ -81,12 +79,7 @@ func (u *academicUsecase) Generate(c context.Context) (res domain.Academic, err 
 
 	err = u.academicRepo.Store(ctx, &res)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+		return domain.Academic{}, u.getError(err)
 	}
 	return
 }

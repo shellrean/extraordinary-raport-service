@@ -25,35 +25,33 @@ func NewClassroomUsecase(d domain.ClassroomRepository, m domain.MajorRepository,
 	}
 }
 
-func (u *classroomUsecase) Fetch(c context.Context) (res []domain.Classroom, err error) {
+func (u classroomUsecase) getError(err error) (error) {
+	if u.cfg.Release {
+		log.Println(err)
+		return domain.ErrServerError
+	}
+	return err
+}
+
+func (u classroomUsecase) Fetch(c context.Context) (res []domain.Classroom, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
 	res, err = u.classRepo.Fetch(ctx)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+		return nil, u.getError(err)
 	}
 
 	return
 }
 
-func (u *classroomUsecase) GetByID(c context.Context, id int64) (res domain.Classroom, err error) {
+func (u classroomUsecase) GetByID(c context.Context, id int64) (res domain.Classroom, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 	
 	res, err = u.classRepo.GetByID(ctx, id)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return domain.Classroom{}, u.getError(err)
 	}
 
 	if res == (domain.Classroom{}) {
@@ -64,19 +62,14 @@ func (u *classroomUsecase) GetByID(c context.Context, id int64) (res domain.Clas
 	return
 }
 
-func (u *classroomUsecase) Store(c context.Context, cl *domain.Classroom) (err error) {
+func (u classroomUsecase) Store(c context.Context, cl *domain.Classroom) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
 	var row domain.Major
 	row, err = u.majorRepo.GetByID(ctx, cl.Major.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	if row == (domain.Major{}) {
 		err = domain.ErrNotFound
@@ -88,28 +81,18 @@ func (u *classroomUsecase) Store(c context.Context, cl *domain.Classroom) (err e
 
 	err = u.classRepo.Store(ctx, cl)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	return
 }
 
-func (u *classroomUsecase) Update(c context.Context, cl *domain.Classroom) (err error) {
+func (u classroomUsecase) Update(c context.Context, cl *domain.Classroom) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
 	class, err := u.classRepo.GetByID(ctx, cl.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if class == (domain.Classroom{}) {
@@ -119,12 +102,7 @@ func (u *classroomUsecase) Update(c context.Context, cl *domain.Classroom) (err 
 
 	major, err := u.majorRepo.GetByID(ctx, cl.Major.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	if major == (domain.Major{}) {
 		err = domain.ErrNotFound
@@ -134,28 +112,18 @@ func (u *classroomUsecase) Update(c context.Context, cl *domain.Classroom) (err 
 	cl.UpdatedAt = time.Now()
 	err = u.classRepo.Update(ctx, cl)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	return
 }
 
-func (u *classroomUsecase) Delete(c context.Context, id int64) (err error) {
+func (u classroomUsecase) Delete(c context.Context, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
 	class, err := u.classRepo.GetByID(ctx, id)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if class == (domain.Classroom{}) {
@@ -165,12 +133,7 @@ func (u *classroomUsecase) Delete(c context.Context, id int64) (err error) {
 	
 	err = u.classRepo.Delete(ctx, id)
 	if err != nil {
-		if (u.cfg.Release) {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	return

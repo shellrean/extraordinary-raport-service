@@ -24,7 +24,15 @@ func NewStudentUsecase(d domain.StudentRepository, timeout time.Duration, cfg *c
 	}
 }
 
-func (u *studentUsecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.Student, nextCursor string, err error) {
+func (u studentUsecase) getError(err error) (error) {
+	if u.cfg.Release {
+		log.Println(err.Error())
+		return domain.ErrServerError
+	}
+	return err
+}
+
+func (u studentUsecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.Student, nextCursor string, err error) {
 	if num == 0 {
 		num = int64(10)
 	}
@@ -41,12 +49,7 @@ func (u *studentUsecase) Fetch(c context.Context, query string, cursor string, n
 
 	res, err = u.studentRepo.Fetch(ctx, query, decodedCursor, num)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+		return res, nextCursor, u.getError(err)
 	}
 
 	if len(res) == int(num) {
@@ -56,18 +59,13 @@ func (u *studentUsecase) Fetch(c context.Context, query string, cursor string, n
 	return
 }
 
-func (u *studentUsecase) GetByID(c context.Context, id int64) (res domain.Student, err error) {
+func (u studentUsecase) GetByID(c context.Context, id int64) (res domain.Student, err error) {
 	ctx, cancel := context.WithTimeout(c,u.contextTimeout)
 	defer cancel()
 
 	res, err = u.studentRepo.GetByID(ctx, id)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return res, u.getError(err)
 	}
 
 	if res == (domain.Student{}) {
@@ -78,7 +76,7 @@ func (u *studentUsecase) GetByID(c context.Context, id int64) (res domain.Studen
 	return
 }
 
-func (u *studentUsecase) Store(c context.Context, s *domain.Student) (err error) {
+func (u studentUsecase) Store(c context.Context, s *domain.Student) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -88,46 +86,32 @@ func (u *studentUsecase) Store(c context.Context, s *domain.Student) (err error)
 	
 	err = u.studentRepo.Store(ctx, s)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	return
 }
 
-func (u *studentUsecase) Update(c context.Context, s *domain.Student) (err error) {
+func (u studentUsecase) Update(c context.Context, s *domain.Student) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
 	s.UpdatedAt = time.Now()
 	err = u.studentRepo.Update(ctx, s)
 	if err != nil {
-		if u.cfg.Release {
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	return
 }
 
-func (u *studentUsecase) Delete(c context.Context, id int64) (err error) {
+func (u studentUsecase) Delete(c context.Context, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
 	res, err := u.studentRepo.GetByID(ctx, id)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if res == (domain.Student{}) {
@@ -137,11 +121,7 @@ func (u *studentUsecase) Delete(c context.Context, id int64) (err error) {
 
 	err = u.studentRepo.Delete(ctx, id)
 	if err != nil {
-		if u.cfg.Release {
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	
 	return

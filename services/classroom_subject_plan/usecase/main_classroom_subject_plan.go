@@ -91,12 +91,7 @@ func (u csPlanUsecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan
 
 	usr, err := u.usrRepo.GetByID(ctx, csp.Teacher.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if usr == (domain.User{}) {
@@ -106,12 +101,7 @@ func (u csPlanUsecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan
 
 	cs, err := u.csRepo.GetByID(ctx, csp.Subject.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	
 	if cs == (domain.ClassroomSubject{}) {
@@ -121,12 +111,7 @@ func (u csPlanUsecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan
 
 	ca, err := u.caRepo.GetByID(ctx, csp.Classroom.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if ca == (domain.ClassroomAcademic{}) {
@@ -139,12 +124,7 @@ func (u csPlanUsecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan
 
 	err = u.cspRepo.Store(ctx, csp)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	
 	return
@@ -156,12 +136,7 @@ func (u csPlanUsecase) Update(c context.Context, csp *domain.ClassroomSubjectPla
 
 	row, err := u.cspRepo.GetByID(ctx, csp.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if row == (domain.ClassroomSubjectPlan{}) {
@@ -176,12 +151,7 @@ func (u csPlanUsecase) Update(c context.Context, csp *domain.ClassroomSubjectPla
 
 	usr, err := u.usrRepo.GetByID(ctx, csp.Teacher.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if usr == (domain.User{}) {
@@ -191,12 +161,7 @@ func (u csPlanUsecase) Update(c context.Context, csp *domain.ClassroomSubjectPla
 
 	cs, err := u.csRepo.GetByID(ctx, csp.Subject.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	
 	if cs == (domain.ClassroomSubject{}) {
@@ -206,12 +171,7 @@ func (u csPlanUsecase) Update(c context.Context, csp *domain.ClassroomSubjectPla
 
 	ca, err := u.caRepo.GetByID(ctx, csp.Classroom.ID)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if ca == (domain.ClassroomAcademic{}) {
@@ -223,12 +183,7 @@ func (u csPlanUsecase) Update(c context.Context, csp *domain.ClassroomSubjectPla
 
 	err = u.cspRepo.Update(ctx, csp)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 	
 	return
@@ -240,12 +195,7 @@ func (u csPlanUsecase) Delete(c context.Context, id int64) (err error) {
 
 	csp, err := u.cspRepo.GetByID(ctx, id)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if csp == (domain.ClassroomSubjectPlan{}) {
@@ -255,12 +205,7 @@ func (u csPlanUsecase) Delete(c context.Context, id int64) (err error) {
 
 	err = u.cspRepo.Delete(ctx, id)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err)
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	return	

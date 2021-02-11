@@ -23,18 +23,21 @@ func NewMajorUsecase(m domain.MajorRepository, timeout time.Duration, cfg *confi
 	}
 }
 
-func (u *majorUsecase) Fetch(c context.Context) (res []domain.Major, err error) {
+func (u majorUsecase) getError(err error) (error) {
+	if u.cfg.Release {
+		log.Println(err.Error())
+		return domain.ErrServerError
+	}
+	return err
+}
+
+func (u majorUsecase) Fetch(c context.Context) (res []domain.Major, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
 	res, err = u.majorRepo.Fetch(ctx)
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return res, u.getError(err)
 	}
 	return
 }

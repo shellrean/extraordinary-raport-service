@@ -35,7 +35,15 @@ func NewClassroomStudentUsecase(
 	}
 }
 
-func (u *csUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.ClassroomStudent, nextCursor string, err error) {
+func (u csUsecase) getError(err error) (error) {
+    if u.cfg.Release {
+        log.Println(err.Error())
+        return domain.ErrServerError
+    }
+    return err
+}
+
+func (u csUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.ClassroomStudent, nextCursor string, err error) {
     if num == 0 {
         num = int64(10)
     }
@@ -51,12 +59,7 @@ func (u *csUsecase) Fetch(c context.Context, cursor string, num int64) (res []do
 
     res, err = u.csRepo.Fetch(ctx, decodedCursor, num)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return res, nextCursor, u.getError(err)
     }
 
     if len(res) == int(num) {
@@ -66,18 +69,13 @@ func (u *csUsecase) Fetch(c context.Context, cursor string, num int64) (res []do
     return
 }
 
-func (u *csUsecase) GetByClassroomAcademic(c context.Context, classroomAcademicID int64) (res []domain.ClassroomStudent, err error) {
+func (u csUsecase) GetByClassroomAcademic(c context.Context, classroomAcademicID int64) (res []domain.ClassroomStudent, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     csa, err := u.csaRepo.GetByID(ctx, classroomAcademicID)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return res, u.getError(err)
     }
 
     if csa == (domain.ClassroomAcademic{}) {
@@ -87,29 +85,19 @@ func (u *csUsecase) GetByClassroomAcademic(c context.Context, classroomAcademicI
 
     res, err = u.csRepo.GetByClassroomAcademic(ctx, classroomAcademicID)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return res, u.getError(err)
     }
 
     return
 }
 
-func (u *csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomStudent, err error) {
+func (u csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomStudent, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     res, err = u.csRepo.GetByID(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return res, u.getError(err)
     }
     if res == (domain.ClassroomStudent{}) {
         err = domain.ErrClassroomStudentNotFound
@@ -118,18 +106,13 @@ func (u *csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomSt
     return
 }
 
-func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err error) {
+func (u csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     res, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
 	if err != nil {
-		if u.cfg.Release {
-            log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
     }
     
     if res == (domain.Setting{}) {
@@ -139,22 +122,12 @@ func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err e
     
     id, err := strconv.Atoi(res.Value)
 	if err != nil {
-		if u.cfg.Release {
-            log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
     }
     
     exist, err := u.csRepo.GetByAcademicAndStudent(ctx, int64(id), cs.Student.ID)
 	if err != nil {
-		if u.cfg.Release {
-            log.Println(err.Error())
-			err = domain.ErrServerError
-			return
-		}
-		return
+		return u.getError(err)
 	}
 
 	if exist != (domain.ClassroomStudent{}) {
@@ -166,28 +139,19 @@ func (u *csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err e
     cs.UpdatedAt = time.Now()
 
     if err = u.csRepo.Store(ctx, cs); err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return u.getError(err)
     }
 
     return
 }
 
-func (u *csUsecase) Update(c context.Context, cs *domain.ClassroomStudent) (err error) {
+func (u csUsecase) Update(c context.Context, cs *domain.ClassroomStudent) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     exist, err := u.csRepo.GetByID(ctx, cs.ID)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            return domain.ErrServerError
-        }
-        return
+        return u.getError(err)
     }
 
     if exist == (domain.ClassroomStudent{}) {
@@ -198,27 +162,19 @@ func (u *csUsecase) Update(c context.Context, cs *domain.ClassroomStudent) (err 
     cs.UpdatedAt = time.Now()
 
     if err = u.csRepo.Update(ctx, cs); err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            return domain.ErrServerError
-        }
-        return
+        return u.getError(err)
     }
 
     return
 }
 
-func (u *csUsecase) Delete(c context.Context, id int64) (err error) {
+func (u csUsecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     exist, err := u.csRepo.GetByID(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            return domain.ErrServerError
-        }
-        return
+        return u.getError(err)
     }
 
     if exist == (domain.ClassroomStudent{}) {
@@ -228,16 +184,12 @@ func (u *csUsecase) Delete(c context.Context, id int64) (err error) {
 
     err = u.csRepo.Delete(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            return domain.ErrServerError
-        }
-        return
+        return u.getError(err)
     }
     return
 }
 
-func (u *csUsecase) chunkSlice(slice []domain.ClassroomStudent, chunkSize int) [][]domain.ClassroomStudent {
+func (u csUsecase) chunkSlice(slice []domain.ClassroomStudent, chunkSize int) [][]domain.ClassroomStudent {
 	var chunks [][]domain.ClassroomStudent
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize
@@ -252,18 +204,13 @@ func (u *csUsecase) chunkSlice(slice []domain.ClassroomStudent, chunkSize int) [
 	return chunks
 }
 
-func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64, toClassroomAcademicID int64) (err error) {
+func (u csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64, toClassroomAcademicID int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     ca, err := u.csaRepo.GetByID(ctx, classroomAcademicID)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return u.getError(err)
     }
 
     if ca == (domain.ClassroomAcademic{}) {
@@ -273,12 +220,7 @@ func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID 
 
     ca, err = u.csaRepo.GetByID(ctx, toClassroomAcademicID)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return u.getError(err)
     }
 
     if ca == (domain.ClassroomAcademic{}) {
@@ -308,12 +250,7 @@ func (u *csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID 
     for _, students := range chunk_students {
         err = u.csRepo.StoreMultiple(ctx, students)
         if err != nil {
-            if u.cfg.Release {
-                log.Println(err.Error())
-                err = domain.ErrServerError
-                return
-            }
-            return
+            return u.getError(err)
         }
     }
     return

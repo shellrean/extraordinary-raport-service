@@ -26,24 +26,27 @@ func NewSettingUsecase(d domain.SettingRepository, m domain.AcademicRepository, 
 	}
 }
 
-func (u *settingUsecase) Fetch(c context.Context, names []string) (res []domain.Setting, err error) {
+func (u settingUsecase) getError(err error) (error) {
+	if u.cfg.Release {
+		log.Println(err.Error())
+		return domain.ErrServerError
+	}
+	return err
+}
+
+func (u settingUsecase) Fetch(c context.Context, names []string) (res []domain.Setting, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 	
 	res, err = u.settRepo.Fetch(ctx, names)
     if err != nil {
-        if u.cfg.Release {
-			log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return res, u.getError(err)
 	}
 	
 	return
 }
 
-func (u *settingUsecase) beforeUpdateAcademicActive(ctx context.Context, s *domain.Setting) (err error) {
+func (u settingUsecase) beforeUpdateAcademicActive(ctx context.Context, s *domain.Setting) (err error) {
 	id, err := strconv.Atoi(s.Value)
 	if err != nil {
 		err = domain.ErrSettingNotFound
@@ -52,12 +55,7 @@ func (u *settingUsecase) beforeUpdateAcademicActive(ctx context.Context, s *doma
 
 	res, err := u.academicRepo.GetByID(ctx, int64(id))
 	if err != nil {
-		if u.cfg.Release {
-			log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+		return u.getError(err)
 	}
 
 	if res == (domain.Academic{}) {
@@ -68,7 +66,7 @@ func (u *settingUsecase) beforeUpdateAcademicActive(ctx context.Context, s *doma
 	return
 }
 
-func (u *settingUsecase) Update(c context.Context, s *domain.Setting) (err error) {
+func (u settingUsecase) Update(c context.Context, s *domain.Setting) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -86,12 +84,7 @@ func (u *settingUsecase) Update(c context.Context, s *domain.Setting) (err error
 	s.UpdatedAt = time.Now()
 	err = u.settRepo.Update(ctx, s)
     if err != nil {
-        if u.cfg.Release {
-			log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return u.getError(err)
 	}
 	
 	return

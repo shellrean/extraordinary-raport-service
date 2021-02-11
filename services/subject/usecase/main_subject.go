@@ -28,7 +28,15 @@ func NewSubjectUsecase(
 	}
 }
 
-func (u *subjectUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.Subject, nextCursor string, err error) {
+func (u subjectUsecase) getError(err error) (error) {
+    if u.cfg.Release {
+        log.Println(err.Error())
+        return domain.ErrServerError
+    }
+    return err
+}
+
+func (u subjectUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.Subject, nextCursor string, err error) {
 	if num == 0 {
 		num = int64(10)
 	}	
@@ -44,12 +52,7 @@ func (u *subjectUsecase) Fetch(c context.Context, cursor string, num int64) (res
 	
 	res, err = u.subjectRepo.Fetch(ctx, decodedCursor, num)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return res, nextCursor, u.getError(err)
     }
 
     if len(res) == int(num) {
@@ -59,19 +62,13 @@ func (u *subjectUsecase) Fetch(c context.Context, cursor string, num int64) (res
     return
 }
 
-
-func (u *subjectUsecase) GetByID(c context.Context, id int64) (res domain.Subject, err error) {
+func (u subjectUsecase) GetByID(c context.Context, id int64) (res domain.Subject, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     res, err = u.subjectRepo.GetByID(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return res, u.getError(err)
     }
     if res == (domain.Subject{}) {
         err= domain.ErrSubjectNotFound
@@ -80,7 +77,7 @@ func (u *subjectUsecase) GetByID(c context.Context, id int64) (res domain.Subjec
     return
 }
 
-func (u *subjectUsecase) Store(c context.Context, s *domain.Subject) (err error) {
+func (u subjectUsecase) Store(c context.Context, s *domain.Subject) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -89,28 +86,18 @@ func (u *subjectUsecase) Store(c context.Context, s *domain.Subject) (err error)
 
     err = u.subjectRepo.Store(ctx, s)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
     return
 }
 
-func (u *subjectUsecase) Update(c context.Context, s *domain.Subject) (err error) {
+func (u subjectUsecase) Update(c context.Context, s *domain.Subject) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     res, err := u.subjectRepo.GetByID(ctx, s.ID)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
     if res == (domain.Subject{}) {
         err= domain.ErrSubjectNotFound
@@ -121,28 +108,18 @@ func (u *subjectUsecase) Update(c context.Context, s *domain.Subject) (err error
 
     err = u.subjectRepo.Update(ctx, s)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
     return 
 }
 
-func (u *subjectUsecase) Delete(c context.Context, id int64) (err error) {
+func (u subjectUsecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     res, err := u.subjectRepo.GetByID(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
     if res == (domain.Subject{}) {
         err= domain.ErrSubjectNotFound
@@ -151,12 +128,7 @@ func (u *subjectUsecase) Delete(c context.Context, id int64) (err error) {
 
     err = u.subjectRepo.Delete(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
     return
 }

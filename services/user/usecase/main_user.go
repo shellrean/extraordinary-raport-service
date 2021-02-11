@@ -29,7 +29,15 @@ func NewUserUsecase(d domain.UserRepository, dc domain.UserCacheRepository, time
     }
 }
 
-func (u *userUsecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.User, nextCursor string, err error) {
+func (u userUsecase) getError(err error) (error) {
+    if u.cfg.Release {
+        log.Println(err.Error())
+        return domain.ErrServerError
+    }
+    return err
+}
+
+func (u userUsecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.User, nextCursor string, err error) {
     if num == 0 {
         num = int64(10)
     }
@@ -45,12 +53,7 @@ func (u *userUsecase) Fetch(c context.Context, query string, cursor string, num 
 
     res, err = u.userRepo.Fetch(ctx, query, decodedCursor, num)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return res, nextCursor, u.getError(err)
     }
 
     if len(res) == int(num) {
@@ -60,7 +63,7 @@ func (u *userUsecase) Fetch(c context.Context, query string, cursor string, num 
     return
 }
 
-func (u *userUsecase) Authentication(c context.Context, ur domain.User) (td domain.Token, err error) {
+func (u userUsecase) Authentication(c context.Context, ur domain.User) (td domain.Token, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -104,7 +107,7 @@ func (u *userUsecase) Authentication(c context.Context, ur domain.User) (td doma
     return
 }
 
-func (u *userUsecase) RefreshToken(c context.Context, td *domain.Token) (err error) {
+func (u userUsecase) RefreshToken(c context.Context, td *domain.Token) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
     
@@ -151,18 +154,13 @@ func (u *userUsecase) RefreshToken(c context.Context, td *domain.Token) (err err
     return
 }
 
-func (u *userUsecase) GetByID(c context.Context, id int64) (res domain.User, err error) {
+func (u userUsecase) GetByID(c context.Context, id int64) (res domain.User, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     res, err = u.userRepo.GetByID(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return res, u.getError(err)
     }
     if res == (domain.User{}) {
         return domain.User{}, domain.ErrUserDataNotFound
@@ -170,23 +168,18 @@ func (u *userUsecase) GetByID(c context.Context, id int64) (res domain.User, err
     return
 }
 
-func (u *userUsecase) UserCurrentLogin(c context.Context, userID int64) (res domain.User, err error) {
+func (u userUsecase) UserCurrentLogin(c context.Context, userID int64) (res domain.User, err error) {
     res, err = u.GetByID(c, userID)
     return
 }
 
-func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
+func (u userUsecase) Store(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     row, err := u.userRepo.GetByEmail(ctx, ur.Email)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return u.getError(err)
     }
     if row != (domain.User{}) {
         err = domain.ErrEmailExist
@@ -195,11 +188,7 @@ func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
 
     password, err := bcrypt.GenerateFromPassword([]byte(ur.Password), 10)
     if err != nil {
-        if u.cfg.Release {
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return u.getError(err)
     }
     ur.Password = string(password)
     ur.CreatedAt = time.Now()
@@ -210,28 +199,19 @@ func (u *userUsecase) Store(c context.Context, ur *domain.User) (err error) {
     }
 
     if err = u.userRepo.Store(ctx, ur); err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            return domain.ErrServerError
-        }
-        return
+        return u.getError(err)
     }
 
     return
 }
 
-func (u *userUsecase) ImportFromExcel(c context.Context, file string) (err error) {
+func (u userUsecase) ImportFromExcel(c context.Context, file string) (err error) {
     ctx, cancel := context.WithTimeout(c, time.Duration(4) * time.Second)
     defer cancel()
 
     res, err := helper.ReadUserFileExcel(ctx, file)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
 
     if res == nil {
@@ -241,29 +221,19 @@ func (u *userUsecase) ImportFromExcel(c context.Context, file string) (err error
 
     err = u.userRepo.StoreMultiple(ctx, res)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
 
     return
 }
 
-func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
+func (u userUsecase) Update(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
     res, err := u.userRepo.GetByID(ctx, ur.ID)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
     if res == (domain.User{}) {
         return domain.ErrUserDataNotFound
@@ -271,12 +241,7 @@ func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
 
     row, err := u.userRepo.GetByEmail(ctx, ur.Email)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return
+        return u.getError(err)
     }
     if row != (domain.User{}) && row.ID != ur.ID {
         err = domain.ErrEmailExist
@@ -294,28 +259,19 @@ func (u *userUsecase) Update(c context.Context, ur *domain.User) (err error) {
 
     err = u.userRepo.Update(ctx, &us)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            return domain.ErrServerError
-        }
-        return
+        return u.getError(err)
     }
 
     return
 }
 
-func (u *userUsecase) Delete(c context.Context, id int64) (err error) {
+func (u userUsecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
     
     res, err := u.userRepo.GetByID(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            err = domain.ErrServerError
-            return
-        }
-        return 
+        return u.getError(err)
     }
     if res == (domain.User{}) {
         return domain.ErrUserDataNotFound
@@ -323,16 +279,12 @@ func (u *userUsecase) Delete(c context.Context, id int64) (err error) {
 
     err = u.userRepo.Delete(ctx, id)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            return domain.ErrServerError
-        }
-        return
+        return u.getError(err)
     }
     return
 }
 
-func (u *userUsecase) DeleteMultiple(c context.Context, query string) (err error) {
+func (u userUsecase) DeleteMultiple(c context.Context, query string) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -342,11 +294,7 @@ func (u *userUsecase) DeleteMultiple(c context.Context, query string) (err error
     
     err = u.userRepo.DeleteMultiple(ctx, ids)
     if err != nil {
-        if u.cfg.Release {
-            log.Println(err.Error())
-            return domain.ErrServerError
-        }
-        return
+        return u.getError(err)
     }
     return
 }
