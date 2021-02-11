@@ -41,9 +41,24 @@ func (u csPlanUsecase) Fetch(c context.Context, query string, userID int64, clas
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 
-	res, err = u.cspRepo.FetchByTeacherAndClassroom(ctx, userID, classID)
-	if err != nil {
-		return nil, u.getError(err)
+	if userID != 0 && classID != 0 {
+		res, err = u.cspRepo.FetchByTeacherAndClassroom(ctx, userID, classID)
+		if err != nil {
+			return nil, u.getError(err)
+		}
+	} else if userID != 0 {
+		res, err = u.cspRepo.FetchByTeacher(ctx, userID)
+		if err != nil {
+			return nil, u.getError(err)
+		}
+		
+	} else if classID != 0 {
+		res, err = u.cspRepo.FetchByClassroom(ctx, classID)
+		if err != nil {
+			return nil, u.getError(err)
+		}
+	} else {
+		return nil, domain.ErrBadParamInput
 	}
 
 	return
