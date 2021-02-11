@@ -10,6 +10,8 @@ $ cd extraordinary-raport-service
 $ go run app/main.go
 ```
 
+Pastikan directory storage writeable 775
+
 ## Configuration
 Create ``config.yml`` file
 ``` yaml
