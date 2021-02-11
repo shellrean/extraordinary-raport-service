@@ -38,6 +38,7 @@ type ClassroomSubjectPlanRepository interface {
 
 type ClassroomSubjectPlanUsecase interface {
 	Fetch(ctx context.Context, query string, userID int64, classID int64) ([]ClassroomSubjectPlan, error)
+	GetByID(ctx context.Context, id int64) (ClassroomSubjectPlan, error)
 	Store(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Update(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Delete(ctx context.Context, id int64) (error)
