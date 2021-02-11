@@ -64,6 +64,22 @@ func (u csPlanUsecase) Fetch(c context.Context, query string, userID int64, clas
 	return
 }
 
+func (u csPlanUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomSubjectPlan, err error) {
+	ctx, cancel := context.WithTimeout(c, u.timeout)
+	defer cancel()
+
+	res, err = u.cspRepo.GetByID(ctx, id)
+	if err != nil {
+		return domain.ClassroomSubjectPlan{}, u.getError(err)
+	}
+
+	if res == (domain.ClassroomSubjectPlan{}) {
+		return domain.ClassroomSubjectPlan{}, domain.ErrSubjectPlanNotFound
+	}
+
+	return
+}
+
 func (u csPlanUsecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
