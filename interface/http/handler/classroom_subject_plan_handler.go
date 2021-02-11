@@ -34,7 +34,8 @@ func NewClassroomSubjectPlanHandler(r *gin.Engine, m domain.ClassroomSubjectPlan
     csp.POST("/", handler.mddl.MustRole([]int{domain.RoleTeacher, domain.RoleAdmin}), handler.Fetch)
 	csp.POST("/classroom-subject-plan", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Store)
 	csp.PUT("/classroom-subject-plan", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Update)
-	csp.DELETE("/classroom-subject-plan/:id", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Delete)
+    csp.DELETE("/classroom-subject-plan/:id", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Delete)
+    csp.GET("/classroom-subject-plan/:id", handler.mddl.MustRole([]int{domain.RoleTeacher, domain.RoleAdmin}), handler.Show)
 }
 
 func (h cspHandler) Fetch(c *gin.Context) {
@@ -81,6 +82,55 @@ func (h cspHandler) Fetch(c *gin.Context) {
         }
 
         data = append(data, csp)
+    }
+
+    c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
+}
+
+func (h cspHandler) Show(c *gin.Context) {
+    idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+
+    res, err := h.cspUsecase.GetByID(c, int64(id))
+    if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+    }
+
+    currentRoleUser := c.GetInt("role")
+    currentUserID := c.GetInt64("user_id")
+
+    if currentRoleUser == domain.RoleTeacher && currentUserID != res.Teacher.ID {
+        c.JSON(
+			api.GetHttpStatusCode(domain.ErrNoAuthorized),
+			api.ResponseError(domain.ErrNoAuthorized.Error(), helper.GetErrorCode(domain.ErrNoAuthorized)),
+        )
+        return
+    }
+
+    data := dto.ClassroomSubjectPlanResponse {
+        ID: res.ID,
+        Type: res.Type,
+        Name: res.Name,
+        Desc: res.Desc,
+        TeacherID: res.Teacher.ID,
+        SubjectID: res.Subject.ID,
+        SubjectName: res.Subject.Subject.Name,
+        ClassroomID: res.Classroom.ID,
+        CountPlan: res.CountPlan,
+        MaxPoint: res.MaxPoint,
     }
 
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
