@@ -95,7 +95,15 @@ func (h cspHandler) Store(c *gin.Context) {
             api.ResponseError(domain.ErrUnprocess.Error(), err_code),
         )
         return
-	}
+    }
+    
+    currentRoleUser := c.GetInt("role")
+    currentUserID := c.GetInt64("user_id")
+
+    if currentRoleUser == domain.RoleTeacher {
+        u.TeacherID = currentUserID
+    }
+
 	validate := validator.New()
 	if err := validate.Struct(u); err != nil {
 		var reserr []api.ErrorValidation
@@ -156,7 +164,14 @@ func (h cspHandler) Update(c *gin.Context) {
             api.ResponseError(domain.ErrUnprocess.Error(), err_code),
         )
         return
-	}
+    }
+    currentRoleUser := c.GetInt("role")
+    currentUserID := c.GetInt64("user_id")
+
+    if currentRoleUser == domain.RoleTeacher {
+        u.TeacherID = currentUserID
+    }
+    
 	validate := validator.New()
 	if err := validate.Struct(u); err != nil {
 		var reserr []api.ErrorValidation
