@@ -41,6 +41,7 @@ func (m csPlanRepo) fetch(ctx context.Context, query string, args ...interface{}
 			&csp.Desc,
 			&csp.Teacher.ID,
 			&csp.Subject.ID,
+			&csp.Subject.Subject.Name,
 			&csp.Classroom.ID,
 			&csp.CountPlan,
 			&csp.MaxPoint,
@@ -80,19 +81,25 @@ func (m csPlanRepo) Store(ctx context.Context, csp *domain.ClassroomSubjectPlan)
 func (m csPlanRepo) GetByID(ctx context.Context, id int64) (res domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
-		id,
-		type, 
-		name, 
-		description, 
-		teacher_id,
-		classroom_subject_id,
-		classroom_academic_id,
-		count_plan,
-		max_point,
-		created_at,
-		updated_at
-	FROM classroom_subject_plans
-	WHERE id=$1`
+		csp.id,
+		csp.type, 
+		csp.name, 
+		csp.description, 
+		csp.teacher_id,
+		csp.classroom_subject_id,
+		s.name,
+		csp.classroom_academic_id,
+		csp.count_plan,
+		csp.max_point,
+		csp.created_at,
+		csp.updated_at
+	FROM 
+		classroom_subject_plans csp
+	INNER JOIN classroom_subjects cs
+		ON cs.id = csp.classroom_subject_id
+	INNER JOIN subjects s
+		ON s.id = cs.subject_id
+	WHERE csp.id=$1`
 
 	list, err := m.fetch(ctx, query, id)
 	if err != nil {
@@ -108,19 +115,25 @@ func (m csPlanRepo) GetByID(ctx context.Context, id int64) (res domain.Classroom
 func (m csPlanRepo) FetchByClassroom(ctx context.Context, id int64) (res []domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
-		id,
-		type, 
-		name, 
-		description, 
-		teacher_id,
-		classroom_subject_id,
-		classroom_academic_id,
-		count_plan,
-		max_point,
-		created_at,
-		updated_at
-	FROM classroom_subject_plans
-	WHERE classroom_academic_id=$1`
+		csp.id,
+		csp.type, 
+		csp.name, 
+		csp.description, 
+		csp.teacher_id,
+		csp.classroom_subject_id,
+		s.name,
+		csp.classroom_academic_id,
+		csp.count_plan,
+		csp.max_point,
+		csp.created_at,
+		csp.updated_at
+	FROM 
+		classroom_subject_plans csp
+	INNER JOIN classroom_subjects cs
+		ON cs.id = csp.classroom_subject_id
+	INNER JOIN subjects s
+		ON s.id = cs.subject_id
+	WHERE csp.classroom_academic_id=$1`
 
 	res, err = m.fetch(ctx, query, id)
 	if err != nil {
@@ -133,19 +146,25 @@ func (m csPlanRepo) FetchByClassroom(ctx context.Context, id int64) (res []domai
 func (m csPlanRepo) FetchByTeacher(ctx context.Context, id int64) (res []domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
-		id,
-		type, 
-		name, 
-		description, 
-		teacher_id,
-		classroom_subject_id,
-		classroom_academic_id,
-		count_plan,
-		max_point,
-		created_at,
-		updated_at
-	FROM classroom_subject_plans
-	WHERE teacher_id=$1`
+		csp.id,
+		csp.type, 
+		csp.name, 
+		csp.description, 
+		csp.teacher_id,
+		csp.classroom_subject_id,
+		s.name,
+		csp.classroom_academic_id,
+		csp.count_plan,
+		csp.max_point,
+		csp.created_at,
+		csp.updated_at
+	FROM 
+		classroom_subject_plans csp
+	INNER JOIN classroom_subjects cs
+		ON cs.id = csp.classroom_subject_id
+	INNER JOIN subjects s
+		ON s.id = cs.subject_id
+	WHERE csp.teacher_id=$1`
 
 	res, err = m.fetch(ctx, query, id)
 	if err != nil {
@@ -158,19 +177,25 @@ func (m csPlanRepo) FetchByTeacher(ctx context.Context, id int64) (res []domain.
 func (m csPlanRepo) FetchByTeacherAndClassroom(ctx context.Context, tid int64, cid int64) (res []domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
-		id,
-		type, 
-		name, 
-		description, 
-		teacher_id,
-		classroom_subject_id,
-		classroom_academic_id,
-		count_plan,
-		max_point,
-		created_at,
-		updated_at
-	FROM classroom_subject_plans
-	WHERE teacher_id=$1 AND classroom_academic_id=$2`
+		csp.id,
+		csp.type, 
+		csp.name, 
+		csp.description, 
+		csp.teacher_id,
+		csp.classroom_subject_id,
+		s.name,
+		csp.classroom_academic_id,
+		csp.count_plan,
+		csp.max_point,
+		csp.created_at,
+		csp.updated_at
+	FROM 
+		classroom_subject_plans csp
+	INNER JOIN classroom_subjects cs
+		ON cs.id = csp.classroom_subject_id
+	INNER JOIN subjects s
+		ON s.id = cs.subject_id
+	WHERE csp.teacher_id=$1 AND csp.classroom_academic_id=$2`
 
 	res, err = m.fetch(ctx, query, tid, cid)
 	if err != nil {
