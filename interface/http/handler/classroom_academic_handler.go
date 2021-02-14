@@ -46,7 +46,14 @@ func NewClassAcademicHandler(
 }	
 
 func (h *classAcademicHandler) Fetch(c *gin.Context) {
-	res, err := h.classAcademicUsecase.Fetch(c)
+    currentRoleUser := c.GetInt("role")
+    currentUserID := c.GetInt64("user_id")
+    user := domain.User{
+        ID: currentUserID,
+        Role: currentRoleUser,
+    }
+    
+    res, err := h.classAcademicUsecase.Fetch(c, user)
     if err != nil {
         err_code := helper.GetErrorCode(err)
         c.JSON(
@@ -54,7 +61,7 @@ func (h *classAcademicHandler) Fetch(c *gin.Context) {
             api.ResponseError(err.Error(), err_code),
         )
         return
-	}
+    }
 	
 	var data []dto.ClassroomAcademicResponse
 	for _, item := range res {
