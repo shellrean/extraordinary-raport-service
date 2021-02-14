@@ -3,6 +3,7 @@ package dto
 type ClassroomSubjectResponse struct {
 	ID 					int64		`json:"id"`
 	ClassroomAcademicID int64		`json:"classroomAcademicID"`
+	ClassroomName 		string 		`json:"classroomName"`
 	SubjectID 			int64		`json:"subjectID"`
 	SubjectName 		string 		`json:"subjectName"`
 	TeacherID 			int64		`json:"teacherID"`
