@@ -31,6 +31,7 @@ func NewClassroomSubjectHandler(r *gin.Engine, m domain.ClassroomSubjectUsecase,
 	csu := r.Group("/classroom-subjects")
 	csu.Use(handler.mddl.Auth())
 
+    csu.GET("/", handler.Fetch)
     csu.POST("/classroom-subject", handler.Store)
     csu.GET("/classroom-subject/:id", handler.Show)
     csu.PUT("/classroom-subject/:id", handler.Update)
@@ -38,6 +39,43 @@ func NewClassroomSubjectHandler(r *gin.Engine, m domain.ClassroomSubjectUsecase,
 
     csu.GET("/classroom/:id", handler.FetchByClassroom)
     csu.POST("/copy-subjects", handler.CopyClassroomSubject)
+}
+
+func (h csuHandler) Fetch(c *gin.Context) {
+    currentRoleUser := c.GetInt("role")
+    currentUserID := c.GetInt64("user_id")
+    user := domain.User{
+        ID: currentUserID,
+        Role: currentRoleUser,
+    }
+    
+    res, err := h.csuUsecase.Fetch(c, user)
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+
+	var data []dto.ClassroomSubjectResponse
+	for _, item := range res {
+		subject := dto.ClassroomSubjectResponse{
+			ID:						item.ID,
+            ClassroomAcademicID:	item.ClassroomAcademic.ID,
+            ClassroomName:          item.ClassroomAcademic.Classroom.Name,
+			SubjectID:				item.Subject.ID,
+			SubjectName:			item.Subject.Name,
+			TeacherID:				item.Teacher.ID,
+			TeacherName:			item.Teacher.Name,
+			MGN:					item.MGN,
+		}
+
+		data = append(data, subject)
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
 func (h csuHandler) Store(c *gin.Context) {
@@ -180,7 +218,8 @@ func (h csuHandler) Show(c *gin.Context) {
     
     data := dto.ClassroomSubjectResponse{
         ID:						res.ID,
-		ClassroomAcademicID:	res.ClassroomAcademic.ID,
+        ClassroomAcademicID:	res.ClassroomAcademic.ID,
+        ClassroomName:          res.ClassroomAcademic.Classroom.Name,
 		SubjectID:				res.Subject.ID,
 		SubjectName:			res.Subject.Name,
 		TeacherID:				res.Teacher.ID,
@@ -242,7 +281,8 @@ func (h csuHandler) FetchByClassroom(c *gin.Context) {
 	for _, item := range res {
 		subject := dto.ClassroomSubjectResponse{
 			ID:						item.ID,
-			ClassroomAcademicID:	item.ClassroomAcademic.ID,
+            ClassroomAcademicID:	item.ClassroomAcademic.ID,
+            ClassroomName:          item.ClassroomAcademic.Classroom.Name,
 			SubjectID:				item.Subject.ID,
 			SubjectName:			item.Subject.Name,
 			TeacherID:				item.Teacher.ID,
