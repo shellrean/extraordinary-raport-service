@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strconv"
 	"time"
 	"log"
 
@@ -14,6 +15,7 @@ type csuUsecase struct {
 	csaRepo 		domain.ClassroomAcademicRepository
 	subjectRepo 	domain.SubjectRepository
 	userRepo		domain.UserRepository
+	settingRepo		domain.SettingRepository
 	contextTimeout  time.Duration
 	cfg 			*config.Config
 }
@@ -23,6 +25,7 @@ func NewClassroomSubjectUsecase(
 	m2 		domain.ClassroomAcademicRepository, 
 	m3		domain.SubjectRepository,
 	m4 		domain.UserRepository,
+	m5 		domain.SettingRepository,
 	timeout time.Duration, 
 	cfg 	*config.Config,
 ) domain.ClassroomSubjectUsecase{
@@ -31,6 +34,7 @@ func NewClassroomSubjectUsecase(
 		csaRepo:		m2,
 		subjectRepo:	m3,
 		userRepo:		m4,
+		settingRepo:	m5,
 		contextTimeout: timeout,
 		cfg:			cfg,
 	}
@@ -42,6 +46,38 @@ func (u csuUsecase) getError(err error) (error) {
 		return domain.ErrServerError
 	}
 	return err
+}
+
+func (u csuUsecase) Fetch(c context.Context, user domain.User) (res []domain.ClassroomSubject, err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	sett, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
+	if err != nil {
+		return nil, u.getError(err)
+	}
+
+	if sett == (domain.Setting{}) {
+		err = domain.ErrNotFound
+		return
+	}
+
+	id, err := strconv.Atoi(sett.Value)
+	if err != nil {
+		return nil, u.getError(err)
+	}
+
+	if user.Role == domain.RoleTeacher {
+		res, err = u.csuRepo.FetchByTeacher(ctx, int64(id), user.ID)
+	} else {
+		res, err = u.csuRepo.Fetch(ctx, int64(id))
+	}
+
+	if err != nil {
+		return res, u.getError(err)
+	}
+
+	return
 }
 
 func (u csuUsecase) FetchByClassroom(c context.Context, academicClassroomID int64) (res []domain.ClassroomSubject, err error) {
