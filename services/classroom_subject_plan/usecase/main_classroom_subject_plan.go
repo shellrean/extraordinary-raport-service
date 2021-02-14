@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 	"log"
+	"strings"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -209,4 +210,19 @@ func (u csPlanUsecase) Delete(c context.Context, id int64) (err error) {
 	}
 
 	return	
+}
+
+func (u csPlanUsecase) DeleteMultiple(c context.Context, query string) (err error) {
+	ctx, cancel := context.WithTimeout(c, u.timeout)
+	defer cancel()
+
+	idV := strings.TrimRight(query, ",")
+	idV = strings.TrimLeft(idV, ",") 
+	ids := strings.Split(idV, ",")
+	
+	err = u.cspRepo.DeleteMultiple(ctx, ids)
+    if err != nil {
+        return u.getError(err)
+    }
+    return
 }

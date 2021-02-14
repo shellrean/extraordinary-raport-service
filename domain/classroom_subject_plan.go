@@ -34,6 +34,7 @@ type ClassroomSubjectPlanRepository interface {
 	Store(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Update(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Delete(ctx context.Context, id int64) (error)
+	DeleteMultiple(ctx context.Context, ids []string) (error)
 }
 
 type ClassroomSubjectPlanUsecase interface {
@@ -42,4 +43,5 @@ type ClassroomSubjectPlanUsecase interface {
 	Store(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Update(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Delete(ctx context.Context, id int64) (error)
+	DeleteMultiple(ctx context.Context, query string) (error)
 }

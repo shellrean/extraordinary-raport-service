@@ -35,6 +35,7 @@ func NewClassroomSubjectPlanHandler(r *gin.Engine, m domain.ClassroomSubjectPlan
 	csp.POST("/classroom-subject-plan", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Store)
 	csp.PUT("/classroom-subject-plan", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Update)
     csp.DELETE("/classroom-subject-plan/:id", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Delete)
+    csp.DELETE("delete", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.DeleteMultiple)
     csp.GET("/classroom-subject-plan/:id", handler.mddl.MustRole([]int{domain.RoleTeacher, domain.RoleAdmin}), handler.Show)
 }
 
@@ -295,4 +296,27 @@ func (h cspHandler) Delete(c *gin.Context) {
         return
 	}
 	c.JSON(http.StatusOK, api.ResponseSuccess("delete classroom subject plan success", nil))
+}
+
+func (h cspHandler) DeleteMultiple(c *gin.Context) {
+    query, _ := c.GetQuery("q")
+    if query == "" {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+    }
+
+    err := h.cspUsecase.DeleteMultiple(c, query)
+	if err != nil {
+        err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+	c.JSON(http.StatusOK, api.ResponseSuccess("delete multiple classroom subject plan success", nil))
 }

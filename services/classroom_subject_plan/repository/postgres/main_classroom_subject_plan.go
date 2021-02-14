@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/lib/pq"
+
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
@@ -247,5 +249,16 @@ func (m csPlanRepo) Delete(ctx context.Context, id int64) (err error) {
     if rows != 1 {
         return fmt.Errorf("expected single row affected, got %d rows affected", rows)
     }
+    return
+}
+
+func (m csPlanRepo) DeleteMultiple(ctx context.Context, ids []string) (err error) {
+	query := `DELETE FROM classroom_subject_plans WHERE id = ANY($1)`
+
+    _, err = m.Conn.ExecContext(ctx, query, pq.Array(ids))
+    if err != nil {
+        return err
+    }
+
     return
 }
