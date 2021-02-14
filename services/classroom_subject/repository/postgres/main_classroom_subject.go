@@ -38,6 +38,7 @@ func (m *csuRepo) fetch(ctx context.Context, query string, args ...interface{}) 
 		err = rows.Scan(
 			&t.ID,
 			&t.ClassroomAcademic.ID,
+			&t.ClassroomAcademic.Classroom.Name,
 			&t.Subject.ID,
 			&t.Teacher.ID,
 			&t.MGN,
@@ -55,10 +56,11 @@ func (m *csuRepo) fetch(ctx context.Context, query string, args ...interface{}) 
     return
 }
 
-func (m *csuRepo) FetchByClassroom(ctx context.Context, academicClassroomID int64) (res []domain.ClassroomSubject, err error) {
+func (m *csuRepo) Fetch(ctx context.Context, academicID int64) (res []domain.ClassroomSubject, err error) {
 	query := `SELECT
 		cs.id,
 		cs.classroom_academic_id,
+		c.name,
 		cs.subject_id,
 		cs.teacher_id,
 		cs.mgn,
@@ -72,6 +74,76 @@ func (m *csuRepo) FetchByClassroom(ctx context.Context, academicClassroomID int6
 		ON u.id = cs.teacher_id
 	INNER JOIN subjects s
 		ON s.id = cs.subject_id
+	INNER JOIN classroom_academics ca
+		ON ca.id = cs.classroom_academic_id
+	INNER JOIN classrooms c
+		ON c.id = ca.classroom_id
+	WHERE cs.classroom_academic_id IN (SELECT id FROM classroom_academics WHERE academic_id=$1)`
+
+	res, err = m.fetch(ctx, query, academicID)
+    if err != nil {
+        return nil, err
+    }
+
+    return
+}
+
+func (m *csuRepo) FetchByTeacher(ctx context.Context, academicID int64, userID int64) (res []domain.ClassroomSubject, err error) {
+	query := `SELECT
+		cs.id,
+		cs.classroom_academic_id,
+		c.name,
+		cs.subject_id,
+		cs.teacher_id,
+		cs.mgn,
+		u.name,
+		s.name,
+		cs.created_at,
+		cs.updated_at
+	FROM 
+		classroom_subjects cs
+	INNER JOIN users u
+		ON u.id = cs.teacher_id
+	INNER JOIN subjects s
+		ON s.id = cs.subject_id
+	INNER JOIN classroom_academics ca
+		ON ca.id = cs.classroom_academic_id
+	INNER JOIN classrooms c
+		ON c.id = ca.classroom_id
+	WHERE 
+		cs.classroom_academic_id IN (SELECT id FROM classroom_academics WHERE academic_id=$1)
+	AND cs.teacher_id = $2`
+
+	res, err = m.fetch(ctx, query, academicID, userID)
+    if err != nil {
+        return nil, err
+    }
+
+    return
+}
+
+func (m *csuRepo) FetchByClassroom(ctx context.Context, academicClassroomID int64) (res []domain.ClassroomSubject, err error) {
+	query := `SELECT
+		cs.id,
+		cs.classroom_academic_id,
+		c.name,
+		cs.subject_id,
+		cs.teacher_id,
+		cs.mgn,
+		u.name,
+		s.name,
+		cs.created_at,
+		cs.updated_at
+	FROM 
+		classroom_subjects cs
+	INNER JOIN users u
+		ON u.id = cs.teacher_id
+	INNER JOIN subjects s
+		ON s.id = cs.subject_id
+	INNER JOIN classroom_academics ca
+		ON ca.id = cs.classroom_academic_id
+	INNER JOIN classrooms c
+		ON c.id = ca.classroom_id
 	WHERE cs.classroom_academic_id=$1`
 
 	res, err = m.fetch(ctx, query, academicClassroomID)
@@ -106,6 +178,7 @@ func (m *csuRepo) GetByID(ctx context.Context, id int64) (res domain.ClassroomSu
 	query := `SELECT
 		cs.id,
 		cs.classroom_academic_id,
+		c.name,
 		cs.subject_id,
 		cs.teacher_id,
 		cs.mgn,
@@ -119,6 +192,10 @@ func (m *csuRepo) GetByID(ctx context.Context, id int64) (res domain.ClassroomSu
 		ON u.id = cs.teacher_id
 	INNER JOIN subjects s
 		ON s.id = cs.subject_id
+	INNER JOIN classroom_academics ca
+		ON ca.id = cs.classroom_academic_id
+	INNER JOIN classrooms c
+		ON c.id = ca.classroom_id
 	WHERE cs.id=$1`
 
 	list, err := m.fetch(ctx, query, id)
@@ -136,6 +213,7 @@ func (m *csuRepo) GetByClassroomAndSubject(ctx context.Context, academicClassroo
 	query := `SELECT
 		cs.id,
 		cs.classroom_academic_id,
+		c.name,
 		cs.subject_id,
 		cs.teacher_id,
 		cs.mgn,
@@ -149,6 +227,10 @@ func (m *csuRepo) GetByClassroomAndSubject(ctx context.Context, academicClassroo
 		ON u.id = cs.teacher_id
 	INNER JOIN subjects s
 		ON s.id = cs.subject_id
+	INNER JOIN classroom_academics ca
+		ON ca.id = cs.classroom_academic_id
+	INNER JOIN classrooms c
+		ON c.id = ca.classroom_id
 	WHERE cs.classroom_academic_id=$1
 		AND cs.subject_id=$2 
 	LIMIT 1`
