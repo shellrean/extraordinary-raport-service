@@ -75,9 +75,38 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, academicID int6
 		ON u.id = ca.teacher_id
 	INNER JOIN majors m
 		on m.id = c.major_id
-	WHERE academic_id=$1`
+	WHERE ca.academic_id=$1`
 	
 	res, err = m.fetch(ctx, query, academicID)
+    if err != nil {
+        return nil, err
+    }
+
+    return
+}
+
+func (m *classroomAcademicRepository) FetchByTeacher(ctx context.Context, academicID int64, userID int64) (res []domain.ClassroomAcademic, err error) {
+	query := `SELECT
+		ca.id,
+		ca.academic_id,
+		ca.classroom_id,
+		ca.teacher_id,
+		c.name,
+		m.name,
+		u.name,
+		ca.created_at,
+		ca.updated_at
+	FROM 
+		classroom_academics ca
+	INNER JOIN classrooms c
+		ON c.id = ca.classroom_id
+	INNER JOIN users u
+		ON u.id = ca.teacher_id
+	INNER JOIN majors m
+		on m.id = c.major_id
+	WHERE ca.academic_id=$1 AND ca.teacher_id=$2`
+	
+	res, err = m.fetch(ctx, query, academicID, userID)
     if err != nil {
         return nil, err
     }
