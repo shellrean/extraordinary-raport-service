@@ -16,6 +16,8 @@ type ClassroomSubject struct {
 }
 
 type ClassroomSubjectRepository interface {
+	Fetch(ctx context.Context, academicID int64) ([]ClassroomSubject, error)
+	FetchByTeacher(ctx context.Context, academicID int64, userID int64) ([]ClassroomSubject, error)
 	FetchByClassroom(ctx context.Context, academicClassroomID int64) ([]ClassroomSubject, error)
 	Store(ctx context.Context, cs *ClassroomSubject) (error)
 	StoreMultiple(ctx context.Context, cs []ClassroomSubject) (error)
@@ -26,6 +28,7 @@ type ClassroomSubjectRepository interface {
 }
 
 type ClassroomSubjectUsecase interface {
+	Fetch(ctx context.Context, usr User) ([]ClassroomSubject, error)
 	FetchByClassroom(ctx context.Context, academicClassroomID int64) ([]ClassroomSubject, error)
 	Store(ctx context.Context, cs *ClassroomSubject) (error)
 	CopyClassroomSubject(ctx context.Context, academicClassroomID int64, toAcademicClassroomID int64) (error)
