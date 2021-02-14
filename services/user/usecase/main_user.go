@@ -127,9 +127,13 @@ func (u userUsecase) RefreshToken(c context.Context, td *domain.Token) (err erro
             return err
         }
     }
-
-    user := domain.User{
-        ID: int64(data["user_id"].(float64)),
+    
+    user, err := u.userRepo.GetByID(ctx, int64(data["user_id"].(float64)))
+    if err != nil {
+        return u.getError(err)
+    }
+    if user == (domain.User{}) {
+        return domain.ErrUserDataNotFound
     }
 
     helper.GenerateTokenDetail(td)
