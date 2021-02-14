@@ -45,7 +45,7 @@ func (u classroomAcademicUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u classroomAcademicUsecase) Fetch(c context.Context) (res []domain.ClassroomAcademic, err error) {
+func (u classroomAcademicUsecase) Fetch(c context.Context, usr domain.User) (res []domain.ClassroomAcademic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -64,7 +64,13 @@ func (u classroomAcademicUsecase) Fetch(c context.Context) (res []domain.Classro
 		return nil, u.getError(err)
 	}
 
-	res, err = u.classAcademicRepo.Fetch(ctx, int64(id))
+	if usr.Role == domain.RoleTeacher {
+		res, err = u.classAcademicRepo.FetchByTeacher(ctx, int64(id), usr.ID)
+
+	} else {
+		res, err = u.classAcademicRepo.Fetch(ctx, int64(id))
+	}
+
 	if err != nil {
 		return nil, u.getError(err)
 	}
