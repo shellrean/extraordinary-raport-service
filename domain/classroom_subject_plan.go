@@ -30,6 +30,7 @@ type ClassroomSubjectPlanRepository interface {
 	GetByID(ctx context.Context, id int64) (ClassroomSubjectPlan, error)
 	FetchByClassroom(ctx context.Context, id int64) ([]ClassroomSubjectPlan, error)
 	FetchByTeacher(ctx context.Context, id int64) ([]ClassroomSubjectPlan, error)
+	FetchByAcademicTeacher(ctx context.Context, academicID int64, id int64) ([]ClassroomSubjectPlan, error)
 	FetchByTeacherAndClassroom(ctx context.Context, tid int64, cid int64) ([]ClassroomSubjectPlan, error)
 	Store(ctx context.Context, csp *ClassroomSubjectPlan) (error)
 	Update(ctx context.Context, csp *ClassroomSubjectPlan) (error)
