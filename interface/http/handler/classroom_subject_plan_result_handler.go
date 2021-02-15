@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"strings"
+	"strconv"
 	
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -35,7 +36,47 @@ func NewClassroomSubjectPlanResultHandler(r *gin.Engine, u sprUsecase, cfg *conf
 	spr.Use(handler.mddl.Auth())
 
 	spr.POST("s", handler.Store) // Store single plan result
+	spr.GET("plan/:id", handler.FetchByPlan)
 }
+
+func (h sprHandler) FetchByPlan(c *gin.Context) {
+	idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+	}
+
+	res, err := h.sprUsecase.FetchByPlan(c, int64(id))
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+
+	var data []dto.ClassroomSubjectPlanResultResponse
+	for _, item := range res {
+		spr := dto.ClassroomSubjectPlanResultResponse{
+			ID:			item.ID,
+			Index:		item.Index,
+			StudentID:	item.Student.ID,
+			SubjectID:	item.Subject.ID,
+			PlanID:		item.Plan.ID,
+			Number:	 	item.Number,
+			UpdatedByID:item.UpdatedBy.ID,
+		}
+		data = append(data, spr)
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
+}	
 
 func (h sprHandler) Store(c *gin.Context) {
 	var u sprRequest
@@ -72,6 +113,7 @@ func (h sprHandler) Store(c *gin.Context) {
 	user_id := sess.(int64)
 
 	s := domain.ClassroomSubjectPlanResult {
+		Index: u.Index,
 		Student: domain.ClassroomStudent{
 			ID: u.StudentID,
 		},

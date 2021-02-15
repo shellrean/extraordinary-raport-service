@@ -73,12 +73,46 @@ func (u sprUsecase) Store(c context.Context, spr *domain.ClassroomSubjectPlanRes
 		return domain.ErrSubjectPlanNotFound
 	}
 
-	spr.CreatedAt = time.Now()
-	spr.UpdatedAt = time.Now()
-
-	err = u.sprRepo.Store(ctx, spr)
+	spre, err := u.sprRepo.GetByPlanIndexStudent(ctx, spr.Plan.ID, spr.Index, spr.Student.ID)
 	if err != nil {
 		return u.getError(err)
+	}
+
+	if spre == (domain.ClassroomSubjectPlanResult{}) {
+		spr.CreatedAt = time.Now()
+		spr.UpdatedAt = time.Now()
+	
+		err = u.sprRepo.Store(ctx, spr)
+	} else {
+		spr.ID = spre.ID
+		spr.UpdatedAt = time.Now()
+
+		err = u.sprRepo.Update(ctx, spr)
+	}
+
+	if err != nil {
+		return u.getError(err)
+	}
+	
+	return
+}
+
+func (u sprUsecase) FetchByPlan(c context.Context, planID int64) (res []domain.ClassroomSubjectPlanResult, err error) {
+	ctx, cancel := context.WithTimeout(c, u.timeout)
+	defer cancel()
+
+	pl, err := u.plRepo.GetByID(ctx, planID)
+	if err != nil {
+		return nil, u.getError(err)
+	}
+
+	if pl == (domain.ClassroomSubjectPlan{}) {
+		return nil, domain.ErrSubjectPlanNotFound
+	}
+
+	res, err = u.sprRepo.FetchByPlan(ctx, planID)
+	if err != nil {
+		return nil, u.getError(err)
 	}
 	
 	return
