@@ -5,6 +5,7 @@ import (
 	"time"
 	"log"
 	"strings"
+	"strconv"
 
 	"github.com/shellrean/extraordinary-raport/domain"
 	"github.com/shellrean/extraordinary-raport/config"
@@ -15,16 +16,18 @@ type csPlanUsecase struct {
 	usrRepo domain.UserRepository
 	csRepo 	domain.ClassroomSubjectRepository
 	caRepo 	domain.ClassroomAcademicRepository
+	settingRepo domain.SettingRepository
 	timeout time.Duration
 	cfg 	*config.Config
 }
 
-func NewClassroomSubjectPlanUsecase(m domain.ClassroomSubjectPlanRepository, m2 domain.UserRepository, m3 domain.ClassroomSubjectRepository, m4 domain.ClassroomAcademicRepository, timeout time.Duration, cfg *config.Config) domain.ClassroomSubjectPlanUsecase{
+func NewClassroomSubjectPlanUsecase(m domain.ClassroomSubjectPlanRepository, m2 domain.UserRepository, m3 domain.ClassroomSubjectRepository, m4 domain.ClassroomAcademicRepository, m5 domain.SettingRepository, timeout time.Duration, cfg *config.Config) domain.ClassroomSubjectPlanUsecase{
 	return &csPlanUsecase{
 		cspRepo:	m,
 		usrRepo:	m2,
 		csRepo:		m3,
 		caRepo:		m4,
+		settingRepo:m5,
 		timeout:	timeout,
 		cfg:		cfg,
 	}
@@ -41,6 +44,7 @@ func (u csPlanUsecase) getError(err error) (error) {
 func (u csPlanUsecase) Fetch(c context.Context, query string, userID int64, classID int64) (res []domain.ClassroomSubjectPlan, err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
+	
 
 	if userID != 0 && classID != 0 {
 		res, err = u.cspRepo.FetchByTeacherAndClassroom(ctx, userID, classID)
@@ -48,7 +52,21 @@ func (u csPlanUsecase) Fetch(c context.Context, query string, userID int64, clas
 			return nil, u.getError(err)
 		}
 	} else if userID != 0 {
-		res, err = u.cspRepo.FetchByTeacher(ctx, userID)
+		sett, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
+		if err != nil {
+			return nil, u.getError(err)
+		}
+
+		if sett == (domain.Setting{}) {
+			return nil, domain.ErrNotFound
+		}
+
+		id, err := strconv.Atoi(sett.Value)
+		if err != nil {
+			return nil, u.getError(err)
+		}
+		
+		res, err = u.cspRepo.FetchByAcademicTeacher(ctx, int64(id), userID)
 		if err != nil {
 			return nil, u.getError(err)
 		}
