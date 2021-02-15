@@ -45,30 +45,37 @@ func (u classroomAcademicUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u classroomAcademicUsecase) Fetch(c context.Context, usr domain.User) (res []domain.ClassroomAcademic, err error) {
-	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
-	defer cancel()
-
+func (u classroomAcademicUsecase) getAcademicID(ctx context.Context) (int, error) {
 	sett, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
 	if err != nil {
-		return nil, u.getError(err)
+		return 0, u.getError(err)
 	}
 
 	if sett == (domain.Setting{}) {
-		err = domain.ErrNotFound
-		return
+		return 0, domain.ErrNotFound
 	}
 
 	id, err := strconv.Atoi(sett.Value)
 	if err != nil {
-		return nil, u.getError(err)
+		return 0, u.getError(err)
+	}
+
+	return id, nil
+}
+
+func (u classroomAcademicUsecase) Fetch(c context.Context, usr domain.User) (res []domain.ClassroomAcademic, err error) {
+	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
+	defer cancel()
+
+	academicID, err := u.getAcademicID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	if usr.Role == domain.RoleTeacher {
-		res, err = u.classAcademicRepo.FetchByTeacher(ctx, int64(id), usr.ID)
-
+		res, err = u.classAcademicRepo.FetchByAcademicAndTeacher(ctx, int64(academicID), usr.ID)
 	} else {
-		res, err = u.classAcademicRepo.Fetch(ctx, int64(id))
+		res, err = u.classAcademicRepo.Fetch(ctx, int64(academicID))
 	}
 
 	if err != nil {
@@ -101,7 +108,7 @@ func (u classroomAcademicUsecase) GetByID(c context.Context, id int64) (res doma
 
 	if res == (domain.ClassroomAcademic{}) {
 		err = domain.ErrClassroomAcademicNotFound
-		return
+		return 
 	}
 	return
 }
@@ -110,18 +117,9 @@ func (u classroomAcademicUsecase) Store(c context.Context, ca *domain.ClassroomA
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
-	res, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
+	id, err := u.getAcademicID(ctx)
 	if err != nil {
-		return u.getError(err)
-	}
-
-	if res == (domain.Setting{}) {
-		return domain.ErrNotFound
-	}
-
-	id, err := strconv.Atoi(res.Value)
-	if err != nil {
-		return u.getError(err)
+		return err
 	}
 
 	exist, err := u.classAcademicRepo.GetByAcademicAndClass(ctx, int64(id), ca.Classroom.ID)
