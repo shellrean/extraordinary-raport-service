@@ -156,6 +156,7 @@ func main() {
         userRepo,
         classroomSubjectRepo,
         classroomAcademicRepo,
+        settingRepo,
         timeoutContext,
         cfg,
     )
