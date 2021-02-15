@@ -85,7 +85,7 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, academicID int6
     return
 }
 
-func (m *classroomAcademicRepository) FetchByTeacher(ctx context.Context, academicID int64, userID int64) (res []domain.ClassroomAcademic, err error) {
+func (m *classroomAcademicRepository) FetchByAcademicAndTeacher(ctx context.Context, academicID int64, userID int64) (res []domain.ClassroomAcademic, err error) {
 	query := `SELECT
 		ca.id,
 		ca.academic_id,
