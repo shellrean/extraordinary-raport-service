@@ -176,6 +176,37 @@ func (m csPlanRepo) FetchByTeacher(ctx context.Context, id int64) (res []domain.
 	return
 }
 
+func (m csPlanRepo) FetchByAcademicTeacher(ctx context.Context, academicID int64,  id int64) (res []domain.ClassroomSubjectPlan, err error) {
+	query := `
+	SELECT 
+		csp.id,
+		csp.type, 
+		csp.name, 
+		csp.description, 
+		csp.teacher_id,
+		csp.classroom_subject_id,
+		s.name,
+		csp.classroom_academic_id,
+		csp.count_plan,
+		csp.max_point,
+		csp.created_at,
+		csp.updated_at
+	FROM 
+		classroom_subject_plans csp
+	INNER JOIN classroom_subjects cs
+		ON cs.id = csp.classroom_subject_id
+	INNER JOIN subjects s
+		ON s.id = cs.subject_id
+	WHERE csp.teacher_id=$1 AND csp.classroom_subject_id IN (SELECT id FROM classroom_academics WHERE academic_id=$2)`
+
+	res, err = m.fetch(ctx, query, id, academicID)
+	if err != nil {
+		return
+	} 
+
+	return
+}
+
 func (m csPlanRepo) FetchByTeacherAndClassroom(ctx context.Context, tid int64, cid int64) (res []domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
