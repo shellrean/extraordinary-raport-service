@@ -33,6 +33,19 @@ func CreateAccessToken(key string, user domain.User, td *domain.Token) (err erro
 	return
 }
 
+func CreateFileAccessToken(key string, path string) (token string, err error) {
+	atClaims := jwt.MapClaims{}
+	atClaims["path"] = path
+	atClaims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	token,  err = at.SignedString([]byte(key))
+	if err != nil {
+		return "", domain.ErrSessDecode
+	}
+	return
+}
+
 func CreateRefreshToken(key string, user domain.User, td *domain.Token) (err error) {
 	rtClaims := jwt.MapClaims{}
 	rtClaims["refresh_uuid"] = td.RefreshUuid
