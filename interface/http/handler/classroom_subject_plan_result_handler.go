@@ -37,6 +37,7 @@ func NewClassroomSubjectPlanResultHandler(r *gin.Engine, u sprUsecase, cfg *conf
 
 	spr.POST("s", handler.Store) // Store single plan result
 	spr.GET("plan/:id", handler.FetchByPlan)
+	spr.GET("export/:id", handler.Export)
 }
 
 func (h sprHandler) FetchByPlan(c *gin.Context) {
@@ -142,3 +143,27 @@ func (h sprHandler) Store(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("create plan result success", u))
 }
 
+func (h sprHandler) Export(c *gin.Context) {
+	idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+	}
+
+	token, err := h.sprUsecase.ExportByPlan(c, int64(id))
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", map[string]string{"token": token}))
+}
