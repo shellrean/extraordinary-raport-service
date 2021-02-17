@@ -53,6 +53,7 @@ func main() {
     }
     cfg.JWTAccessKey = "secret"
     cfg.JWTRefreshKey = "refreshsecret"
+    cfg.JWTFileKey = "filesecret"
     cfg.Storage.TmpPath = "/storage/app/_tmp"
     cfg.Storage.PublicPath = "/storage/app/public"
 
