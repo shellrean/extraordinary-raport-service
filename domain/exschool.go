@@ -14,6 +14,7 @@ type Exschool struct {
 
 type ExschoolRepository interface {
 	Fetch(ctx context.Context, cursor int64, num int64) ([]Exschool, error)
+	GetByID(ctx context.Context, id int64) (Exschool, error)
 }
 
 type ExschoolUsecase interface {
