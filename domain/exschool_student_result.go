@@ -4,10 +4,10 @@ import (
 	"time"
 )
 
-type StudentResultExschool struct {
+type ExschoolStudentResult struct {
 	ID 					int64
 	ExschoolStudent 	ExschoolStudent
-	Number				uint
+	Number				string
 	UpdatedBy			User
 	CreatedAt			time.Time
 	UpdatedAt 			time.Time
