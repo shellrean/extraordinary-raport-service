@@ -28,4 +28,5 @@ type ClassroomSubjectPlanResultRepository interface {
 type ClassroomSubjectPlanResultUsecase interface {
 	Store(ctx context.Context, spr *ClassroomSubjectPlanResult) (error)
 	FetchByPlan(ctx context.Context, planID int64) ([]ClassroomSubjectPlanResult, error)
+	ExportByPlan(ctx context.Context, planID int64) (string, error)
 }
