@@ -78,6 +78,8 @@ type Config struct {
 
     JWTRefreshKey string
 
+    JWTFileKey string
+
     Storage struct {
         TmpPath     string
         PublicPath  string
