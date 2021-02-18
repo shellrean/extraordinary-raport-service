@@ -8,17 +8,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type postgresAcademicRepository struct {
+type repository struct {
 	Conn *sql.DB
 }
 
-func NewPostgresAcademicRepository(Conn *sql.DB) domain.AcademicRepository {
-	return &postgresAcademicRepository{
+func New(Conn *sql.DB) domain.AcademicRepository {
+	return &repository{
 		Conn,
 	}
 }
 
-func (m *postgresAcademicRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Academic, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Academic, err error) {
 	rows, err := m.Conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		return
@@ -49,7 +49,7 @@ func (m *postgresAcademicRepository) fetch(ctx context.Context, query string, ar
 	return
 }
 
-func (m *postgresAcademicRepository) Fetch(ctx context.Context) (res []domain.Academic, err error) {
+func (m *repository) Fetch(ctx context.Context) (res []domain.Academic, err error) {
 	query := `SELECT id,name,semester,created_at,updated_at
 		FROM academics`
 
@@ -61,7 +61,7 @@ func (m *postgresAcademicRepository) Fetch(ctx context.Context) (res []domain.Ac
 	return
 }
 
-func (m *postgresAcademicRepository) GetByID(ctx context.Context, id int64) (res domain.Academic, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.Academic, err error) {
 	query := `SELECT id,name,semester,created_at,updated_at
 		FROM academics WHERE id=$1`
 	list, err := m.fetch(ctx, query, id)
@@ -75,7 +75,7 @@ func (m *postgresAcademicRepository) GetByID(ctx context.Context, id int64) (res
 	return
 }
 
-func (m *postgresAcademicRepository) GetByYearAndSemester(ctx context.Context, year string, sem int) (res domain.Academic, err error) {
+func (m *repository) GetByYearAndSemester(ctx context.Context, year string, sem int) (res domain.Academic, err error) {
 	query := `SELECT id,name,semester,created_at,updated_at
 		FROM academics WHERE name=$1 AND semester=$2`
 	list, err := m.fetch(ctx, query, year, sem)
@@ -89,7 +89,7 @@ func (m *postgresAcademicRepository) GetByYearAndSemester(ctx context.Context, y
 	return
 }
 
-func (m *postgresAcademicRepository) Store(ctx context.Context, ac *domain.Academic) (err error) {
+func (m *repository) Store(ctx context.Context, ac *domain.Academic) (err error) {
 	query := `INSERT INTO academics (name,semester,created_at,updated_at)
 		VALUES($1,$2,$3,$4) RETURNING id`
 	err = m.Conn.QueryRowContext(ctx, query, ac.Name, ac.Semester, ac.CreatedAt, ac.UpdatedAt).Scan(&ac.ID)
@@ -99,7 +99,7 @@ func (m *postgresAcademicRepository) Store(ctx context.Context, ac *domain.Acade
 	return
 }
 
-func (m *postgresAcademicRepository) Delete(ctx context.Context, id int64) (err error) {
+func (m *repository) Delete(ctx context.Context, id int64) (err error) {
 	query := `DELETE FROM academics WHERE id=$1`
 	result, err := m.Conn.ExecContext(ctx, query, id)
 	if err != nil {

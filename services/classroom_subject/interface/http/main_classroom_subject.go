@@ -16,32 +16,32 @@ import (
     "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
-type csuHandler struct {
+type handler struct {
 	csuUsecase 		domain.ClassroomSubjectUsecase
 	config 			*config.Config
 	mddl 			*middleware.GoMiddleware
 }
 
-func NewClassroomSubjectHandler(r *gin.Engine, m domain.ClassroomSubjectUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-	handler := &csuHandler{
+func New(r *gin.Engine, m domain.ClassroomSubjectUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+	h := &handler{
 		csuUsecase:		m,
 		config:			cfg,
 		mddl:			mddl,
 	}
 	csu := r.Group("/classroom-subjects")
-	csu.Use(handler.mddl.Auth())
+	csu.Use(h.mddl.Auth())
 
-    csu.GET("/", handler.Fetch)
-    csu.POST("/classroom-subject", handler.Store)
-    csu.GET("/classroom-subject/:id", handler.Show)
-    csu.PUT("/classroom-subject/:id", handler.Update)
-    csu.DELETE("/classroom-subject/:id", handler.Delete)
+    csu.GET("/", h.Fetch)
+    csu.POST("/classroom-subject", h.Store)
+    csu.GET("/classroom-subject/:id", h.Show)
+    csu.PUT("/classroom-subject/:id", h.Update)
+    csu.DELETE("/classroom-subject/:id", h.Delete)
 
-    csu.GET("/classroom/:id", handler.FetchByClassroom)
-    csu.POST("/copy-subjects", handler.CopyClassroomSubject)
+    csu.GET("/classroom/:id", h.FetchByClassroom)
+    csu.POST("/copy-subjects", h.CopyClassroomSubject)
 }
 
-func (h csuHandler) Fetch(c *gin.Context) {
+func (h *handler) Fetch(c *gin.Context) {
     currentRoleUser := c.GetInt("role")
     currentUserID := c.GetInt64("user_id")
     user := domain.User{
@@ -78,7 +78,7 @@ func (h csuHandler) Fetch(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h csuHandler) Store(c *gin.Context) {
+func (h *handler) Store(c *gin.Context) {
 	var u dto.ClassroomSubjectRequest
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -130,7 +130,7 @@ func (h csuHandler) Store(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("create classroom subject success", u))
 }
 
-func (h csuHandler) Update(c *gin.Context) {
+func (h *handler) Update(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -194,7 +194,7 @@ func (h csuHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("update classroom subject success", u))
 }
 
-func (h csuHandler) Show(c *gin.Context) {
+func (h *handler) Show(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -230,7 +230,7 @@ func (h csuHandler) Show(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h csuHandler) Delete(c *gin.Context) {
+func (h *handler) Delete(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -255,7 +255,7 @@ func (h csuHandler) Delete(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", make(map[string]string, 0)))
 }
 
-func (h csuHandler) FetchByClassroom(c *gin.Context) {
+func (h *handler) FetchByClassroom(c *gin.Context) {
 	idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -296,7 +296,7 @@ func (h csuHandler) FetchByClassroom(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h csuHandler) CopyClassroomSubject(c *gin.Context) {
+func (h *handler) CopyClassroomSubject(c *gin.Context) {
     var u dto.ClassroomSubjectCopyRequest
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)

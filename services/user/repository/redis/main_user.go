@@ -9,17 +9,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type redisUserRepository struct {
+type repository struct {
 	Conn *redis.Client
 }
 
-func NewRedisUserRepository(Conn *redis.Client) domain.UserCacheRepository {
-	return &redisUserRepository {
+func New(Conn *redis.Client) domain.UserCacheRepository {
+	return &repository {
 		Conn,
 	}
 }
 
-func (m *redisUserRepository) StoreAuth(ctx context.Context, u domain.User, td *domain.Token) (err error) {
+func (m *repository) StoreAuth(ctx context.Context, u domain.User, td *domain.Token) (err error) {
 	at := time.Unix(td.AtExpires, 0)
 	rt := time.Unix(td.RtExpires, 0)
 	now := time.Now()
@@ -36,7 +36,7 @@ func (m *redisUserRepository) StoreAuth(ctx context.Context, u domain.User, td *
 	return
 }
 
-func (m *redisUserRepository) DeleteAuth(ctx context.Context, uuid string) (err error) {
+func (m *repository) DeleteAuth(ctx context.Context, uuid string) (err error) {
 	_, err = m.Conn.Del(ctx, uuid).Result()
 	if err != nil {
 		return domain.ErrServerError

@@ -38,7 +38,18 @@ import (
     _classroomSubjectPlanResultRepo "github.com/shellrean/extraordinary-raport/services/classroom_subject_plan_result/repository/postgres"
     _classroomSubjectPlanResultUsecase "github.com/shellrean/extraordinary-raport/services/classroom_subject_plan_result/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
-    httpHandler "github.com/shellrean/extraordinary-raport/interface/http/handler"
+    academicHandler "github.com/shellrean/extraordinary-raport/services/academic/interface/http"
+    majorHandler "github.com/shellrean/extraordinary-raport/services/major/interface/http"
+    classroomHandler "github.com/shellrean/extraordinary-raport/services/classroom/interface/http"
+    classroomAcademicHandler "github.com/shellrean/extraordinary-raport/services/classroom_academic/interface/http"
+    classroomStudentHandler "github.com/shellrean/extraordinary-raport/services/classroom_student/interface/http"
+    classroomSubjectHandler "github.com/shellrean/extraordinary-raport/services/classroom_subject/interface/http"
+    classroomSubjectPlanHandler "github.com/shellrean/extraordinary-raport/services/classroom_subject_plan/interface/http"
+    classroomSubjectPlanResultHandler "github.com/shellrean/extraordinary-raport/services/classroom_subject_plan_result/interface/http"
+    settingHandler "github.com/shellrean/extraordinary-raport/services/setting/interface/http"
+    studentHandler "github.com/shellrean/extraordinary-raport/services/student/interface/http"
+    subjectHandler "github.com/shellrean/extraordinary-raport/services/subject/interface/http"
+    userHandler "github.com/shellrean/extraordinary-raport/services/user/interface/http"
 )
 
 func main() {
@@ -47,7 +58,7 @@ func main() {
         log.Fatal(err)
     }
 
-    cfg, err := config.NewConfig(cfgPath)
+    cfg, err := config.New(cfgPath)
     if err != nil {
         log.Fatal(err)
     }
@@ -94,32 +105,32 @@ func main() {
 
     timeoutContext := time.Duration(cfg.Context.Timeout) * time.Second
 
-    userRepo := _userRepo.NewPostgresUserRepository(db)
-    userCacheRepo := _userCacheRepo.NewRedisUserRepository(redis)
-    userUsecase := _userUsecase.NewUserUsecase(userRepo, userCacheRepo, timeoutContext, cfg)
+    userRepo := _userRepo.New(db)
+    userCacheRepo := _userCacheRepo.New(redis)
+    userUsecase := _userUsecase.New(userRepo, userCacheRepo, timeoutContext, cfg)
 
-    studentRepo := _studentRepo.NewPostgresStudentRepository(db)
-    studentUsecase := _studnetUsecase.NewStudentUsecase(studentRepo, timeoutContext, cfg)
+    studentRepo := _studentRepo.New(db)
+    studentUsecase := _studnetUsecase.New(studentRepo, timeoutContext, cfg)
 
-    academicRepo := _academicRepo.NewPostgresAcademicRepository(db)
-    academicUsecase := _academicUsecase.NewAcademicUsecase(academicRepo, timeoutContext, cfg)
+    academicRepo := _academicRepo.New(db)
+    academicUsecase := _academicUsecase.New(academicRepo, timeoutContext, cfg)
     
-    majorRepo := _majorRepo.NewPostgresMajorRepository(db)
-    majorUsecase := _majorUsecase.NewMajorUsecase(majorRepo, timeoutContext, cfg)
+    majorRepo := _majorRepo.New(db)
+    majorUsecase := _majorUsecase.New(majorRepo, timeoutContext, cfg)
 
-    classroomRepo := _classroomRepo.NewPostgresClassroomRepository(db)
-    classroomUsecase := _classroomUsecase.NewClassroomUsecase(classroomRepo, majorRepo, timeoutContext, cfg)
+    classroomRepo := _classroomRepo.New(db)
+    classroomUsecase := _classroomUsecase.New(classroomRepo, majorRepo, timeoutContext, cfg)
 
-    settingRepo := _settingRepo.NewPostgresSettingRepository(db)
-    settingUsecase := _settingUsecase.NewSettingUsecase(
+    settingRepo := _settingRepo.New(db)
+    settingUsecase := _settingUsecase.New(
         settingRepo, 
         academicRepo,
         timeoutContext, 
         cfg,
     )
 
-    classroomAcademicRepo := _classroomAcademicRepo.NewPostgresClassroomAcademicRepository(db)
-    classroomAcademicUsecase := _classroomAcademicUsecase.NewClassroomAcademicUsecase(
+    classroomAcademicRepo := _classroomAcademicRepo.New(db)
+    classroomAcademicUsecase := _classroomAcademicUsecase.New(
         classroomAcademicRepo, 
         settingRepo, 
         userRepo,
@@ -128,11 +139,11 @@ func main() {
         cfg,
     )
 
-    subjectRepo := _subjectRepo.NewPostgresSubjectRepository(db)
-    subjectUsecase := _subjectUsecase.NewSubjectUsecase(subjectRepo, timeoutContext, cfg)
+    subjectRepo := _subjectRepo.New(db)
+    subjectUsecase := _subjectUsecase.New(subjectRepo, timeoutContext, cfg)
 
-    classroomStudentRepo := _classroomStudentRepo.NewPostgresClassroomStudentRepository(db)
-    classroomStudentUsecase := _classroomStudentUsecase.NewClassroomStudentUsecase(
+    classroomStudentRepo := _classroomStudentRepo.New(db)
+    classroomStudentUsecase := _classroomStudentUsecase.New(
         classroomStudentRepo, 
         classroomAcademicRepo,
         settingRepo,
@@ -140,8 +151,8 @@ func main() {
         cfg,
     )
 
-    classroomSubjectRepo := _classroomSubjectRepo.NewPostgresClassroomSubjectRepository(db)
-    classroomSubjectUsecase := _classroomSubjectUsecase.NewClassroomSubjectUsecase(
+    classroomSubjectRepo := _classroomSubjectRepo.New(db)
+    classroomSubjectUsecase := _classroomSubjectUsecase.New(
         classroomSubjectRepo, 
         classroomAcademicRepo,
         subjectRepo,
@@ -151,8 +162,8 @@ func main() {
         cfg,
     )
 
-    classroomSubjectPlanRepo := _classroomSubjectPlanRepo.NewPostgresClassroomSubjectPlanRepository(db)
-    classroomSubjectPlanUsecase := _classroomSubjectPlanUsecase.NewClassroomSubjectPlanUsecase(
+    classroomSubjectPlanRepo := _classroomSubjectPlanRepo.New(db)
+    classroomSubjectPlanUsecase := _classroomSubjectPlanUsecase.New(
         classroomSubjectPlanRepo,
         userRepo,
         classroomSubjectRepo,
@@ -162,8 +173,8 @@ func main() {
         cfg,
     )
 
-    classroomSubjectPlanResultRepo := _classroomSubjectPlanResultRepo.NewPostgresClassroomSubjectPlanResult(db)
-    classroomSubjectPlanResultUsecase := _classroomSubjectPlanResultUsecase.NewClassroomSubjectPlanResultUsecase(
+    classroomSubjectPlanResultRepo := _classroomSubjectPlanResultRepo.New(db)
+    classroomSubjectPlanResultUsecase := _classroomSubjectPlanResultUsecase.New(
         classroomSubjectPlanResultRepo,
         classroomStudentRepo,
         classroomSubjectRepo,
@@ -178,22 +189,22 @@ func main() {
     
     r := gin.Default()
 
-    mddl := _middleware.InitMiddleware(cfg)
+    mddl := _middleware.Init(cfg)
 
     r.Use(mddl.CORS())
-
-    httpHandler.NewUserHandler(r, userUsecase, cfg, mddl)
-    httpHandler.NewStudentHandler(r, studentUsecase, cfg, mddl)
-    httpHandler.NewAcademicHandler(r, academicUsecase, cfg, mddl)
-    httpHandler.NewClassroomHandler(r, classroomUsecase, cfg, mddl)
-    httpHandler.NewMajorHandler(r, majorUsecase, cfg, mddl)
-    httpHandler.NewClassAcademicHandler(r, classroomAcademicUsecase, cfg, mddl)
-    httpHandler.NewSubjectHandler(r, subjectUsecase, cfg, mddl)
-    httpHandler.NewClassroomStudentHandler(r, classroomStudentUsecase, cfg, mddl)
-    httpHandler.NewClassroomSubjectHandler(r, classroomSubjectUsecase, cfg, mddl)
-    httpHandler.NewSettingHandler(r, settingUsecase, cfg, mddl)
-    httpHandler.NewClassroomSubjectPlanHandler(r, classroomSubjectPlanUsecase, cfg, mddl)
-    httpHandler.NewClassroomSubjectPlanResultHandler(r, classroomSubjectPlanResultUsecase, cfg, mddl)
+    
+    userHandler.New(r, userUsecase, cfg, mddl)
+    settingHandler.New(r, settingUsecase, cfg, mddl)
+    majorHandler.New(r, majorUsecase, cfg, mddl)
+    studentHandler.New(r, studentUsecase, cfg, mddl)
+    subjectHandler.New(r, subjectUsecase, cfg, mddl)
+    academicHandler.New(r, academicUsecase, cfg, mddl)
+    classroomHandler.New(r, classroomUsecase, cfg, mddl)
+    classroomAcademicHandler.New(r, classroomAcademicUsecase, cfg, mddl)
+    classroomStudentHandler.New(r, classroomStudentUsecase, cfg, mddl)
+    classroomSubjectHandler.New(r, classroomSubjectUsecase, cfg, mddl)
+    classroomSubjectPlanHandler.New(r, classroomSubjectPlanUsecase, cfg, mddl)
+    classroomSubjectPlanResultHandler.New(r, classroomSubjectPlanResultUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)

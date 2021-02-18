@@ -13,15 +13,15 @@ import (
     "github.com/shellrean/extraordinary-raport/entities/helper"
 )
 
-type userUsecase struct {
+type usecase struct {
     userRepo        domain.UserRepository
     userCacheRepo   domain.UserCacheRepository
     contextTimeout  time.Duration
     cfg             *config.Config
 }
 
-func NewUserUsecase(d domain.UserRepository, dc domain.UserCacheRepository, timeout time.Duration, cfg *config.Config) domain.UserUsecase {
-    return &userUsecase {
+func New(d domain.UserRepository, dc domain.UserCacheRepository, timeout time.Duration, cfg *config.Config) domain.UserUsecase {
+    return &usecase {
         userRepo:       d,
         userCacheRepo:  dc,
         contextTimeout: timeout,
@@ -29,7 +29,7 @@ func NewUserUsecase(d domain.UserRepository, dc domain.UserCacheRepository, time
     }
 }
 
-func (u userUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
     if u.cfg.Release {
         log.Println(err.Error())
         return domain.ErrServerError
@@ -37,7 +37,7 @@ func (u userUsecase) getError(err error) (error) {
     return err
 }
 
-func (u userUsecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.User, nextCursor string, err error) {
+func (u *usecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.User, nextCursor string, err error) {
     if num == 0 {
         num = int64(10)
     }
@@ -63,7 +63,7 @@ func (u userUsecase) Fetch(c context.Context, query string, cursor string, num i
     return
 }
 
-func (u userUsecase) Authentication(c context.Context, ur domain.User) (td domain.Token, err error) {
+func (u *usecase) Authentication(c context.Context, ur domain.User) (td domain.Token, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -107,7 +107,7 @@ func (u userUsecase) Authentication(c context.Context, ur domain.User) (td domai
     return
 }
 
-func (u userUsecase) RefreshToken(c context.Context, td *domain.Token) (err error) {
+func (u *usecase) RefreshToken(c context.Context, td *domain.Token) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
     
@@ -158,7 +158,7 @@ func (u userUsecase) RefreshToken(c context.Context, td *domain.Token) (err erro
     return
 }
 
-func (u userUsecase) GetByID(c context.Context, id int64) (res domain.User, err error) {
+func (u *usecase) GetByID(c context.Context, id int64) (res domain.User, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -172,12 +172,12 @@ func (u userUsecase) GetByID(c context.Context, id int64) (res domain.User, err 
     return
 }
 
-func (u userUsecase) UserCurrentLogin(c context.Context, userID int64) (res domain.User, err error) {
+func (u *usecase) UserCurrentLogin(c context.Context, userID int64) (res domain.User, err error) {
     res, err = u.GetByID(c, userID)
     return
 }
 
-func (u userUsecase) Store(c context.Context, ur *domain.User) (err error) {
+func (u *usecase) Store(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -209,7 +209,7 @@ func (u userUsecase) Store(c context.Context, ur *domain.User) (err error) {
     return
 }
 
-func (u userUsecase) ImportFromExcel(c context.Context, file string) (err error) {
+func (u *usecase) ImportFromExcel(c context.Context, file string) (err error) {
     ctx, cancel := context.WithTimeout(c, time.Duration(4) * time.Second)
     defer cancel()
 
@@ -231,7 +231,7 @@ func (u userUsecase) ImportFromExcel(c context.Context, file string) (err error)
     return
 }
 
-func (u userUsecase) Update(c context.Context, ur *domain.User) (err error) {
+func (u *usecase) Update(c context.Context, ur *domain.User) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -269,7 +269,7 @@ func (u userUsecase) Update(c context.Context, ur *domain.User) (err error) {
     return
 }
 
-func (u userUsecase) Delete(c context.Context, id int64) (err error) {
+func (u *usecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
     
@@ -288,7 +288,7 @@ func (u userUsecase) Delete(c context.Context, id int64) (err error) {
     return
 }
 
-func (u userUsecase) DeleteMultiple(c context.Context, query string) (err error) {
+func (u *usecase) DeleteMultiple(c context.Context, query string) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 

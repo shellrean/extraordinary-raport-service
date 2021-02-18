@@ -10,17 +10,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type csPlanRepo struct {
+type repository struct {
 	Conn *sql.DB
 }
 
-func NewPostgresClassroomSubjectPlanRepository(Conn *sql.DB) domain.ClassroomSubjectPlanRepository {
-	return &csPlanRepo {
+func New(Conn *sql.DB) domain.ClassroomSubjectPlanRepository {
+	return &repository {
 		Conn,
 	}
 }
 
-func (m csPlanRepo) fetch(ctx context.Context, query string, args ...interface{}) (res []domain.ClassroomSubjectPlan, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (res []domain.ClassroomSubjectPlan, err error) {
 	rows, err := m.Conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		return
@@ -61,7 +61,7 @@ func (m csPlanRepo) fetch(ctx context.Context, query string, args ...interface{}
 	return
 }
 
-func (m csPlanRepo) Store(ctx context.Context, csp *domain.ClassroomSubjectPlan) (err error){
+func (m *repository) Store(ctx context.Context, csp *domain.ClassroomSubjectPlan) (err error){
 	query := `INSERT INTO classroom_subject_plans (type,name,description,teacher_id,classroom_subject_id,classroom_academic_id,count_plan,max_point,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`
 
 	err = m.Conn.QueryRowContext(ctx, query, 
@@ -80,7 +80,7 @@ func (m csPlanRepo) Store(ctx context.Context, csp *domain.ClassroomSubjectPlan)
 	return
 }
 
-func (m csPlanRepo) GetByID(ctx context.Context, id int64) (res domain.ClassroomSubjectPlan, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
 		csp.id,
@@ -114,7 +114,7 @@ func (m csPlanRepo) GetByID(ctx context.Context, id int64) (res domain.Classroom
 	return
 }
 
-func (m csPlanRepo) FetchByClassroom(ctx context.Context, id int64) (res []domain.ClassroomSubjectPlan, err error) {
+func (m *repository) FetchByClassroom(ctx context.Context, id int64) (res []domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
 		csp.id,
@@ -145,7 +145,7 @@ func (m csPlanRepo) FetchByClassroom(ctx context.Context, id int64) (res []domai
 	return
 }
 
-func (m csPlanRepo) FetchByTeacher(ctx context.Context, id int64) (res []domain.ClassroomSubjectPlan, err error) {
+func (m *repository) FetchByTeacher(ctx context.Context, id int64) (res []domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
 		csp.id,
@@ -176,7 +176,7 @@ func (m csPlanRepo) FetchByTeacher(ctx context.Context, id int64) (res []domain.
 	return
 }
 
-func (m csPlanRepo) FetchByAcademicTeacher(ctx context.Context, academicID int64,  id int64) (res []domain.ClassroomSubjectPlan, err error) {
+func (m *repository) FetchByAcademicTeacher(ctx context.Context, academicID int64,  id int64) (res []domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
 		csp.id,
@@ -207,7 +207,7 @@ func (m csPlanRepo) FetchByAcademicTeacher(ctx context.Context, academicID int64
 	return
 }
 
-func (m csPlanRepo) FetchByTeacherAndClassroom(ctx context.Context, tid int64, cid int64) (res []domain.ClassroomSubjectPlan, err error) {
+func (m *repository) FetchByTeacherAndClassroom(ctx context.Context, tid int64, cid int64) (res []domain.ClassroomSubjectPlan, err error) {
 	query := `
 	SELECT 
 		csp.id,
@@ -238,7 +238,7 @@ func (m csPlanRepo) FetchByTeacherAndClassroom(ctx context.Context, tid int64, c
 	return
 }
 
-func (m csPlanRepo) Update(ctx context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
+func (m *repository) Update(ctx context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
 	query := `UPDATE classroom_subject_plans SET type=$1, name=$2, description=$3, teacher_id=$4, classroom_subject_id=$5, classroom_academic_id=$6, count_plan=$7, max_point=$8, updated_at=$9 WHERE id=$10`
 
 	result, err := m.Conn.ExecContext(ctx, query, 
@@ -267,7 +267,7 @@ func (m csPlanRepo) Update(ctx context.Context, csp *domain.ClassroomSubjectPlan
     return
 }
 
-func (m csPlanRepo) Delete(ctx context.Context, id int64) (err error) {
+func (m *repository) Delete(ctx context.Context, id int64) (err error) {
 	query := `DELETE FROM classroom_subject_plans WHERE id=$1`
     result, err := m.Conn.ExecContext(ctx, query, id)
     if err != nil {
@@ -283,7 +283,7 @@ func (m csPlanRepo) Delete(ctx context.Context, id int64) (err error) {
     return
 }
 
-func (m csPlanRepo) DeleteMultiple(ctx context.Context, ids []string) (err error) {
+func (m *repository) DeleteMultiple(ctx context.Context, ids []string) (err error) {
 	query := `DELETE FROM classroom_subject_plans WHERE id = ANY($1)`
 
     _, err = m.Conn.ExecContext(ctx, query, pq.Array(ids))

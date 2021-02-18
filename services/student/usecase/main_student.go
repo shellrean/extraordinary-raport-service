@@ -10,21 +10,21 @@ import (
 	"github.com/shellrean/extraordinary-raport/entities/helper"
 )
 
-type studentUsecase struct {
+type usecase struct {
 	studentRepo		domain.StudentRepository
 	contextTimeout 	time.Duration
 	cfg 			*config.Config
 }
 
-func NewStudentUsecase(d domain.StudentRepository, timeout time.Duration, cfg *config.Config) domain.StudentUsecase {
-	return &studentUsecase {
+func New(d domain.StudentRepository, timeout time.Duration, cfg *config.Config) domain.StudentUsecase {
+	return &usecase {
 		studentRepo:		d,
 		contextTimeout:		timeout,
 		cfg: 				cfg,
 	}
 }
 
-func (u studentUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
 	if u.cfg.Release {
 		log.Println(err.Error())
 		return domain.ErrServerError
@@ -32,7 +32,7 @@ func (u studentUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u studentUsecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.Student, nextCursor string, err error) {
+func (u *usecase) Fetch(c context.Context, query string, cursor string, num int64) (res []domain.Student, nextCursor string, err error) {
 	if num == 0 {
 		num = int64(10)
 	}
@@ -59,7 +59,7 @@ func (u studentUsecase) Fetch(c context.Context, query string, cursor string, nu
 	return
 }
 
-func (u studentUsecase) GetByID(c context.Context, id int64) (res domain.Student, err error) {
+func (u *usecase) GetByID(c context.Context, id int64) (res domain.Student, err error) {
 	ctx, cancel := context.WithTimeout(c,u.contextTimeout)
 	defer cancel()
 
@@ -76,7 +76,7 @@ func (u studentUsecase) GetByID(c context.Context, id int64) (res domain.Student
 	return
 }
 
-func (u studentUsecase) Store(c context.Context, s *domain.Student) (err error) {
+func (u *usecase) Store(c context.Context, s *domain.Student) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -92,7 +92,7 @@ func (u studentUsecase) Store(c context.Context, s *domain.Student) (err error) 
 	return
 }
 
-func (u studentUsecase) Update(c context.Context, s *domain.Student) (err error) {
+func (u *usecase) Update(c context.Context, s *domain.Student) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -105,7 +105,7 @@ func (u studentUsecase) Update(c context.Context, s *domain.Student) (err error)
 	return
 }
 
-func (u studentUsecase) Delete(c context.Context, id int64) (err error) {
+func (u *usecase) Delete(c context.Context, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 

@@ -9,21 +9,21 @@ import (
 	"github.com/shellrean/extraordinary-raport/config"
 )
 
-type majorUsecase struct {
+type usecase struct {
 	majorRepo		domain.MajorRepository
 	contextTimeout	time.Duration
 	cfg				*config.Config
 }
 
-func NewMajorUsecase(m domain.MajorRepository, timeout time.Duration, cfg *config.Config) domain.MajorUsecase {
-	return &majorUsecase {
+func New(m domain.MajorRepository, timeout time.Duration, cfg *config.Config) domain.MajorUsecase {
+	return &usecase {
 		majorRepo:			m,
 		contextTimeout: 	timeout,
 		cfg:				cfg,
 	}
 }
 
-func (u majorUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
 	if u.cfg.Release {
 		log.Println(err.Error())
 		return domain.ErrServerError
@@ -31,7 +31,7 @@ func (u majorUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u majorUsecase) Fetch(c context.Context) (res []domain.Major, err error) {
+func (u *usecase) Fetch(c context.Context) (res []domain.Major, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 

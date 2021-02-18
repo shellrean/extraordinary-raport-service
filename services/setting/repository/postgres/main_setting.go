@@ -10,17 +10,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type settingRepository struct {
+type repository struct {
 	Conn *sql.DB
 }
 
-func NewPostgresSettingRepository(Conn *sql.DB) domain.SettingRepository {
-	return &settingRepository{
+func New(Conn *sql.DB) domain.SettingRepository {
+	return &repository{
 		Conn,
 	}
 }
 
-func (m *settingRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Setting, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Setting, err error) {
     rows, err := m.Conn.QueryContext(ctx, query, args...)
     if err != nil {
         return nil, err
@@ -50,7 +50,7 @@ func (m *settingRepository) fetch(ctx context.Context, query string, args ...int
     return
 }
 
-func (m *settingRepository) GetByName(ctx context.Context, name string) (res domain.Setting, err error) {
+func (m *repository) GetByName(ctx context.Context, name string) (res domain.Setting, err error) {
 	query := `SELECT id,name,value,created_at,updated_at 
 		FROM settings WHERE name=$1`
 	err = m.Conn.QueryRowContext(ctx, query, name).
@@ -67,7 +67,7 @@ func (m *settingRepository) GetByName(ctx context.Context, name string) (res dom
 	return
 }
 
-func (m *settingRepository) Fetch(ctx context.Context, names []string) (res []domain.Setting, err error) {
+func (m *repository) Fetch(ctx context.Context, names []string) (res []domain.Setting, err error) {
 	query := `SELECT id,name,value,created_at,updated_at
 		FROM settings WHERE name = ANY($1)`
     res, err = m.fetch(ctx, query, pq.Array(names))
@@ -78,7 +78,7 @@ func (m *settingRepository) Fetch(ctx context.Context, names []string) (res []do
     return
 }
 
-func (m *settingRepository) Update(ctx context.Context, s *domain.Setting) (err error) {
+func (m *repository) Update(ctx context.Context, s *domain.Setting) (err error) {
     query := `UPDATE settings SET value=$1, updated_at=$2
             WHERE name=$3`
 

@@ -8,17 +8,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type sprRepo struct {
+type repository struct {
 	Conn *sql.DB
 }
 
-func NewPostgresClassroomSubjectPlanResult(Conn *sql.DB) domain.ClassroomSubjectPlanResultRepository{
-	return &sprRepo{
+func New(Conn *sql.DB) domain.ClassroomSubjectPlanResultRepository{
+	return &repository{
 		Conn,
 	}
 }
 
-func (m sprRepo) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.ClassroomSubjectPlanResult, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.ClassroomSubjectPlanResult, err error) {
     rows, err := m.Conn.QueryContext(ctx, query, args...)
     if err != nil {
         return nil, err
@@ -53,7 +53,7 @@ func (m sprRepo) fetch(ctx context.Context, query string, args ...interface{}) (
     return
 }
 
-func (m sprRepo) Store(ctx context.Context, spr *domain.ClassroomSubjectPlanResult) (err error) {
+func (m *repository) Store(ctx context.Context, spr *domain.ClassroomSubjectPlanResult) (err error) {
 	query := `INSERT INTO classroom_subject_plan_results (index, student_id, subject_id, plan_id, number, updated_by, created_at, updated_at)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`
 
@@ -62,7 +62,7 @@ func (m sprRepo) Store(ctx context.Context, spr *domain.ClassroomSubjectPlanResu
 	return
 }
 
-func (m sprRepo) FetchByPlan(ctx context.Context, planID int64) (res []domain.ClassroomSubjectPlanResult, err error) {
+func (m *repository) FetchByPlan(ctx context.Context, planID int64) (res []domain.ClassroomSubjectPlanResult, err error) {
 	query := `SELECT id, index, student_id, subject_id, plan_id, number, updated_by, created_at, updated_at FROM classroom_subject_plan_results WHERE plan_id=$1`
 
 	res, err = m.fetch(ctx, query, planID)
@@ -73,7 +73,7 @@ func (m sprRepo) FetchByPlan(ctx context.Context, planID int64) (res []domain.Cl
     return
 }
 
-func (m sprRepo) GetByPlanIndexStudent(ctx context.Context, p int64, i int, s int64) (res domain.ClassroomSubjectPlanResult, err error) {
+func (m *repository) GetByPlanIndexStudent(ctx context.Context, p int64, i int, s int64) (res domain.ClassroomSubjectPlanResult, err error) {
 	query := `SELECT id, index, student_id, subject_id, plan_id, number, updated_by, created_at, updated_at FROM classroom_subject_plan_results WHERE plan_id=$1 AND index=$2 AND student_id=$3`
 
     list, err := m.fetch(ctx, query, p, i, s)
@@ -87,7 +87,7 @@ func (m sprRepo) GetByPlanIndexStudent(ctx context.Context, p int64, i int, s in
     return
 }
 
-func (m sprRepo) Update(ctx context.Context, spr *domain.ClassroomSubjectPlanResult) (err error) {
+func (m *repository) Update(ctx context.Context, spr *domain.ClassroomSubjectPlanResult) (err error) {
     query := `UPDATE classroom_subject_plan_results SET index=$1, student_id=$2, subject_id=$3, plan_id=$4, number=$5, updated_by=$6, updated_at=$7 WHERE id=$8`
 
 	result, err := m.Conn.ExecContext(ctx, query, spr.Index, spr.Student.ID, spr.Subject.ID, spr.Plan.ID, spr.Number, spr.UpdatedBy.ID, spr.UpdatedAt, spr.ID)

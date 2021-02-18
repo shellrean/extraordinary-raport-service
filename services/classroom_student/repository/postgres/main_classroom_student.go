@@ -9,17 +9,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type csRepository struct {
+type repository struct {
 	Conn 	*sql.DB
 }
 
-func NewPostgresClassroomStudentRepository(Conn *sql.DB) domain.ClassroomStudentRepository {
-	return &csRepository {
+func New(Conn *sql.DB) domain.ClassroomStudentRepository {
+	return &repository {
 		Conn,
 	}
 }
 
-func (m *csRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.ClassroomStudent, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.ClassroomStudent, err error) {
     rows, err := m.Conn.QueryContext(ctx, query, args...)
     if err != nil {
         return nil, err
@@ -55,7 +55,7 @@ func (m *csRepository) fetch(ctx context.Context, query string, args ...interfac
     return
 }
 
-func (m *csRepository) Fetch(ctx context.Context, cursor int64, num int64) (res []domain.ClassroomStudent, err error) {
+func (m *repository) Fetch(ctx context.Context, cursor int64, num int64) (res []domain.ClassroomStudent, err error) {
     query := `SELECT 
         cs.id,
         cs.classroom_academic_id,
@@ -79,7 +79,7 @@ func (m *csRepository) Fetch(ctx context.Context, cursor int64, num int64) (res 
     return
 }
 
-func (m *csRepository) GetByID(ctx context.Context, id int64) (res domain.ClassroomStudent, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.ClassroomStudent, err error) {
     query := `SELECT 
         cs.id,
         cs.classroom_academic_id,
@@ -106,7 +106,7 @@ func (m *csRepository) GetByID(ctx context.Context, id int64) (res domain.Classr
     return
 }
 
-func (m *csRepository) GetByAcademicAndStudent(ctx context.Context, academic int64, student int64) (res domain.ClassroomStudent, err error) {
+func (m *repository) GetByAcademicAndStudent(ctx context.Context, academic int64, student int64) (res domain.ClassroomStudent, err error) {
     query := `SELECT 
         cs.id,
         cs.classroom_academic_id,
@@ -135,7 +135,7 @@ func (m *csRepository) GetByAcademicAndStudent(ctx context.Context, academic int
     return
 }
 
-func (m *csRepository) GetByClassroomAcademic(ctx context.Context, academicID int64) (res []domain.ClassroomStudent, err error) {
+func (m *repository) GetByClassroomAcademic(ctx context.Context, academicID int64) (res []domain.ClassroomStudent, err error) {
     query := `SELECT 
         cs.id,
         cs.classroom_academic_id,
@@ -159,7 +159,7 @@ func (m *csRepository) GetByClassroomAcademic(ctx context.Context, academicID in
     return
 }
 
-func (m *csRepository) Store(ctx context.Context, cs *domain.ClassroomStudent) (err error) {
+func (m *repository) Store(ctx context.Context, cs *domain.ClassroomStudent) (err error) {
     query := `INSERT INTO classroom_students (classroom_academic_id, student_id,created_at, updated_at)
             VALUES ($1,$2,$3,$4) RETURNING id`
         
@@ -171,7 +171,7 @@ func (m *csRepository) Store(ctx context.Context, cs *domain.ClassroomStudent) (
     return
 }
 
-func (m *csRepository) Update(ctx context.Context, cs *domain.ClassroomStudent) (err error) {
+func (m *repository) Update(ctx context.Context, cs *domain.ClassroomStudent) (err error) {
     query := `UPDATE classroom_students SET classroom_academic_id=$1, student_id=$2, updated_at=$3
         WHERE id=$4`
     
@@ -189,7 +189,7 @@ func (m *csRepository) Update(ctx context.Context, cs *domain.ClassroomStudent) 
     return
 }
 
-func (m *csRepository) Delete(ctx context.Context, id int64) (err error) {
+func (m *repository) Delete(ctx context.Context, id int64) (err error) {
     query := `DELETE FROM classroom_students WHERE id=$1`
     result, err := m.Conn.ExecContext(ctx, query, id)
     if err != nil {
@@ -205,7 +205,7 @@ func (m *csRepository) Delete(ctx context.Context, id int64) (err error) {
     return
 }
 
-func (m *csRepository) StoreMultiple(ctx context.Context, cas []domain.ClassroomStudent) (err error) {
+func (m *repository) StoreMultiple(ctx context.Context, cas []domain.ClassroomStudent) (err error) {
     var valueStrings []string
     var valueArgs []interface{}
 

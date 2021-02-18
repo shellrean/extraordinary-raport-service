@@ -11,7 +11,7 @@ import (
     "github.com/shellrean/extraordinary-raport/entities/helper"
 )
 
-type csUsecase struct {
+type usecase struct {
     csRepo			domain.ClassroomStudentRepository
     csaRepo         domain.ClassroomAcademicRepository
     settingRepo     domain.SettingRepository
@@ -19,14 +19,14 @@ type csUsecase struct {
 	cfg 			*config.Config
 }
 
-func NewClassroomStudentUsecase(
+func New(
     d domain.ClassroomStudentRepository,
     m domain.ClassroomAcademicRepository,
     sr domain.SettingRepository,
 	timeout time.Duration,
 	cfg *config.Config,
 ) domain.ClassroomStudentUsecase {
-	return &csUsecase {
+	return &usecase {
         csRepo:			d,
         csaRepo:        m,
         settingRepo:    sr,
@@ -35,7 +35,7 @@ func NewClassroomStudentUsecase(
 	}
 }
 
-func (u csUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
     if u.cfg.Release {
         log.Println(err.Error())
         return domain.ErrServerError
@@ -43,7 +43,7 @@ func (u csUsecase) getError(err error) (error) {
     return err
 }
 
-func (u csUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.ClassroomStudent, nextCursor string, err error) {
+func (u *usecase) Fetch(c context.Context, cursor string, num int64) (res []domain.ClassroomStudent, nextCursor string, err error) {
     if num == 0 {
         num = int64(10)
     }
@@ -69,7 +69,7 @@ func (u csUsecase) Fetch(c context.Context, cursor string, num int64) (res []dom
     return
 }
 
-func (u csUsecase) GetByClassroomAcademic(c context.Context, classroomAcademicID int64) (res []domain.ClassroomStudent, err error) {
+func (u *usecase) GetByClassroomAcademic(c context.Context, classroomAcademicID int64) (res []domain.ClassroomStudent, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -91,7 +91,7 @@ func (u csUsecase) GetByClassroomAcademic(c context.Context, classroomAcademicID
     return
 }
 
-func (u csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomStudent, err error) {
+func (u *usecase) GetByID(c context.Context, id int64) (res domain.ClassroomStudent, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -106,7 +106,7 @@ func (u csUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomStu
     return
 }
 
-func (u csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err error) {
+func (u *usecase) Store(c context.Context, cs *domain.ClassroomStudent) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -145,7 +145,7 @@ func (u csUsecase) Store(c context.Context, cs *domain.ClassroomStudent) (err er
     return
 }
 
-func (u csUsecase) Update(c context.Context, cs *domain.ClassroomStudent) (err error) {
+func (u *usecase) Update(c context.Context, cs *domain.ClassroomStudent) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -168,7 +168,7 @@ func (u csUsecase) Update(c context.Context, cs *domain.ClassroomStudent) (err e
     return
 }
 
-func (u csUsecase) Delete(c context.Context, id int64) (err error) {
+func (u *usecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -189,7 +189,7 @@ func (u csUsecase) Delete(c context.Context, id int64) (err error) {
     return
 }
 
-func (u csUsecase) chunkSlice(slice []domain.ClassroomStudent, chunkSize int) [][]domain.ClassroomStudent {
+func (u *usecase) chunkSlice(slice []domain.ClassroomStudent, chunkSize int) [][]domain.ClassroomStudent {
 	var chunks [][]domain.ClassroomStudent
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize
@@ -204,7 +204,7 @@ func (u csUsecase) chunkSlice(slice []domain.ClassroomStudent, chunkSize int) []
 	return chunks
 }
 
-func (u csUsecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64, toClassroomAcademicID int64) (err error) {
+func (u *usecase) CopyClassroomStudent(c context.Context, classroomAcademicID int64, toClassroomAcademicID int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 

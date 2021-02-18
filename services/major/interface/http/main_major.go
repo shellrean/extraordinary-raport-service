@@ -13,25 +13,25 @@ import (
     "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
-type majorHandler struct {
+type handler struct {
     majorUsecase     domain.MajorUsecase
     config          *config.Config
     mddl            *middleware.GoMiddleware
 }
 
-func NewMajorHandler(r *gin.Engine, m domain.MajorUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-	handler := &majorHandler{
+func New(r *gin.Engine, m domain.MajorUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+	h := &handler{
         majorUsecase:    m,
         config:         cfg,
         mddl:           mddl,
 	}
 	major := r.Group("/majors")
-	major.Use(handler.mddl.Auth())
+	major.Use(h.mddl.Auth())
 
-	major.GET("/", handler.Fetch)
+	major.GET("/", h.Fetch)
 }
 
-func (h *majorHandler) Fetch(c *gin.Context) {
+func (h *handler) Fetch(c *gin.Context) {
 	res, err := h.majorUsecase.Fetch(c)
     if err != nil {
         err_code := helper.GetErrorCode(err)

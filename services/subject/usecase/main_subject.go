@@ -10,25 +10,25 @@ import (
     "github.com/shellrean/extraordinary-raport/entities/helper"
 )
 
-type subjectUsecase struct {
+type usecase struct {
 	subjectRepo 	domain.SubjectRepository
 	contextTimeout  time.Duration
     cfg             *config.Config
 }
 
-func NewSubjectUsecase(
+func New(
 	d domain.SubjectRepository,
 	timeout time.Duration,
 	cfg *config.Config,
 ) domain.SubjectUsecase {
-	return &subjectUsecase {
+	return &usecase {
 		subjectRepo:	d,
 		contextTimeout: timeout,
 		cfg:			cfg,
 	}
 }
 
-func (u subjectUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
     if u.cfg.Release {
         log.Println(err.Error())
         return domain.ErrServerError
@@ -36,7 +36,7 @@ func (u subjectUsecase) getError(err error) (error) {
     return err
 }
 
-func (u subjectUsecase) Fetch(c context.Context, cursor string, num int64) (res []domain.Subject, nextCursor string, err error) {
+func (u *usecase) Fetch(c context.Context, cursor string, num int64) (res []domain.Subject, nextCursor string, err error) {
 	if num == 0 {
 		num = int64(10)
 	}	
@@ -62,7 +62,7 @@ func (u subjectUsecase) Fetch(c context.Context, cursor string, num int64) (res 
     return
 }
 
-func (u subjectUsecase) GetByID(c context.Context, id int64) (res domain.Subject, err error) {
+func (u *usecase) GetByID(c context.Context, id int64) (res domain.Subject, err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -77,7 +77,7 @@ func (u subjectUsecase) GetByID(c context.Context, id int64) (res domain.Subject
     return
 }
 
-func (u subjectUsecase) Store(c context.Context, s *domain.Subject) (err error) {
+func (u *usecase) Store(c context.Context, s *domain.Subject) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -91,7 +91,7 @@ func (u subjectUsecase) Store(c context.Context, s *domain.Subject) (err error) 
     return
 }
 
-func (u subjectUsecase) Update(c context.Context, s *domain.Subject) (err error) {
+func (u *usecase) Update(c context.Context, s *domain.Subject) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 
@@ -113,7 +113,7 @@ func (u subjectUsecase) Update(c context.Context, s *domain.Subject) (err error)
     return 
 }
 
-func (u subjectUsecase) Delete(c context.Context, id int64) (err error) {
+func (u *usecase) Delete(c context.Context, id int64) (err error) {
     ctx, cancel := context.WithTimeout(c, u.contextTimeout)
     defer cancel()
 

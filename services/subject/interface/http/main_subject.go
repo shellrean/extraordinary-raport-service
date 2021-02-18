@@ -16,30 +16,30 @@ import (
     "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
-type subjectHandler struct {
+type handler struct {
     subjectUsecase  domain.SubjectUsecase
     config          *config.Config
     mddl            *middleware.GoMiddleware
 }
 
-func NewSubjectHandler(r *gin.Engine, m domain.SubjectUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-	handler := &subjectHandler{
+func New(r *gin.Engine, m domain.SubjectUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+	h := &handler{
 		subjectUsecase: 	m,
 		config:				cfg,
 		mddl:				mddl,
 	}
 
 	subject := r.Group("/subjects")
-	subject.Use(handler.mddl.Auth())
+	subject.Use(h.mddl.Auth())
 
-    subject.GET("/", handler.Fetch)
-    subject.GET("/:id", handler.Show)
-    subject.POST("/", handler.Store)
-    subject.PUT("/:id", handler.Update)
-    subject.DELETE("/:id", handler.Delete)
+    subject.GET("/", h.Fetch)
+    subject.GET("/:id", h.Show)
+    subject.POST("/", h.Store)
+    subject.PUT("/:id", h.Update)
+    subject.DELETE("/:id", h.Delete)
 }
 
-func (h *subjectHandler) Fetch(c *gin.Context) {
+func (h *handler) Fetch(c *gin.Context) {
 	limS , _ := c.GetQuery("limit")
     lim, _ := strconv.Atoi(limS)
     cursor, _ := c.GetQuery("cursor")
@@ -68,7 +68,7 @@ func (h *subjectHandler) Fetch(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
-func (h *subjectHandler) Show(c *gin.Context) {
+func (h *handler) Show(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -97,8 +97,7 @@ func (h *subjectHandler) Show(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-
-func (h *subjectHandler) Store(c *gin.Context) {
+func (h *handler) Store(c *gin.Context) {
     var u dto.SubjectResponse
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -147,7 +146,7 @@ func (h *subjectHandler) Store(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("create subject success", u))
 }
 
-func (h *subjectHandler) Update(c *gin.Context) {
+func (h *handler) Update(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -226,7 +225,7 @@ func (h *subjectHandler) Update(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("update subject success", u))
 }
 
-func (h *subjectHandler) Delete(c *gin.Context) {
+func (h *handler) Delete(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {

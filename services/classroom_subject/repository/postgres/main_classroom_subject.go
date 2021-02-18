@@ -9,17 +9,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type csuRepo struct {
+type repository struct {
 	Conn 	*sql.DB
 }
 
-func NewPostgresClassroomSubjectRepository(Conn *sql.DB) domain.ClassroomSubjectRepository {
-	return &csuRepo{
+func New(Conn *sql.DB) domain.ClassroomSubjectRepository {
+	return &repository{
 		Conn,
 	}
 }
 
-func (m *csuRepo) fetch(ctx context.Context, query string, args ...interface{}) (res []domain.ClassroomSubject, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (res []domain.ClassroomSubject, err error) {
     rows, err := m.Conn.QueryContext(ctx, query, args...)
     if err != nil {
         return nil, err
@@ -56,7 +56,7 @@ func (m *csuRepo) fetch(ctx context.Context, query string, args ...interface{}) 
     return
 }
 
-func (m *csuRepo) Fetch(ctx context.Context, academicID int64) (res []domain.ClassroomSubject, err error) {
+func (m *repository) Fetch(ctx context.Context, academicID int64) (res []domain.ClassroomSubject, err error) {
 	query := `SELECT
 		cs.id,
 		cs.classroom_academic_id,
@@ -88,7 +88,7 @@ func (m *csuRepo) Fetch(ctx context.Context, academicID int64) (res []domain.Cla
     return
 }
 
-func (m *csuRepo) FetchByTeacher(ctx context.Context, academicID int64, userID int64) (res []domain.ClassroomSubject, err error) {
+func (m *repository) FetchByTeacher(ctx context.Context, academicID int64, userID int64) (res []domain.ClassroomSubject, err error) {
 	query := `SELECT
 		cs.id,
 		cs.classroom_academic_id,
@@ -122,7 +122,7 @@ func (m *csuRepo) FetchByTeacher(ctx context.Context, academicID int64, userID i
     return
 }
 
-func (m *csuRepo) FetchByClassroom(ctx context.Context, academicClassroomID int64) (res []domain.ClassroomSubject, err error) {
+func (m *repository) FetchByClassroom(ctx context.Context, academicClassroomID int64) (res []domain.ClassroomSubject, err error) {
 	query := `SELECT
 		cs.id,
 		cs.classroom_academic_id,
@@ -154,7 +154,7 @@ func (m *csuRepo) FetchByClassroom(ctx context.Context, academicClassroomID int6
     return
 }
 
-func (m *csuRepo) Store(ctx context.Context, cs *domain.ClassroomSubject) (err error) {
+func (m *repository) Store(ctx context.Context, cs *domain.ClassroomSubject) (err error) {
 	query := `INSERT INTO classroom_subjects (classroom_academic_id, subject_id, teacher_id, mgn, created_at, updated_at)
 		VALUES($1,$2,$3,$4,$5,$6) RETURNING id`
 
@@ -174,7 +174,7 @@ func (m *csuRepo) Store(ctx context.Context, cs *domain.ClassroomSubject) (err e
 	return
 }
 
-func (m *csuRepo) GetByID(ctx context.Context, id int64) (res domain.ClassroomSubject, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.ClassroomSubject, err error) {
 	query := `SELECT
 		cs.id,
 		cs.classroom_academic_id,
@@ -209,7 +209,7 @@ func (m *csuRepo) GetByID(ctx context.Context, id int64) (res domain.ClassroomSu
     return
 }
 
-func (m *csuRepo) GetByClassroomAndSubject(ctx context.Context, academicClassroomID int64, subjectID int64) (res domain.ClassroomSubject, err error) {
+func (m *repository) GetByClassroomAndSubject(ctx context.Context, academicClassroomID int64, subjectID int64) (res domain.ClassroomSubject, err error) {
 	query := `SELECT
 		cs.id,
 		cs.classroom_academic_id,
@@ -246,7 +246,7 @@ func (m *csuRepo) GetByClassroomAndSubject(ctx context.Context, academicClassroo
     return
 }
 
-func (m *csuRepo) Update(ctx context.Context, cs *domain.ClassroomSubject) (err error) {
+func (m *repository) Update(ctx context.Context, cs *domain.ClassroomSubject) (err error) {
 	query := `UPDATE classroom_subjects SET subject_id=$1, teacher_id=$2, mgn=$3, updated_at=$4 
 		WHERE id=$5`
 	
@@ -264,7 +264,7 @@ func (m *csuRepo) Update(ctx context.Context, cs *domain.ClassroomSubject) (err 
 	return
 }
 
-func (m *csuRepo) Delete(ctx context.Context, id int64) (err error) {
+func (m *repository) Delete(ctx context.Context, id int64) (err error) {
     query := `DELETE FROM classroom_subjects WHERE id=$1`
     result, err := m.Conn.ExecContext(ctx, query, id)
     if err != nil {
@@ -280,7 +280,7 @@ func (m *csuRepo) Delete(ctx context.Context, id int64) (err error) {
     return
 }
 
-func (m *csuRepo) StoreMultiple(ctx context.Context, cs []domain.ClassroomSubject) (err error) {
+func (m *repository) StoreMultiple(ctx context.Context, cs []domain.ClassroomSubject) (err error) {
 	var valueStrings []string
     var valueArgs []interface{}
 

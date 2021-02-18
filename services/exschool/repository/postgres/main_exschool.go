@@ -7,20 +7,20 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type exschoolRepo struct{
+type repository struct{
 	Conn *sql.DB
 }
 
-func NewPostgresExschoolRepository(Conn *sql.DB) domain.ExschoolRepository{
-	return &ExschoolRepo{
+func New(Conn *sql.DB) domain.ExschoolRepository{
+	return &repository{
 		Conn,
 	}
 }
 
-func (m exschoolRepo) Fetch(ctx context.Context) {
+func (m *repository) Fetch(ctx context.Context) {
 	return
 }
 
-func (m exschoolRepo) Store(ctx context.Context ex *domain.Exschool) (err error) {
+func (m *repository) Store(ctx context.Context ex *domain.Exschool) (err error) {
 	return
 }

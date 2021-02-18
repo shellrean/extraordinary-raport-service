@@ -8,17 +8,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type postgresStudentRepository struct {
+type repository struct {
 	Conn *sql.DB
 }
 
-func NewPostgresStudentRepository(Conn *sql.DB) domain.StudentRepository {
-	return &postgresStudentRepository{
+func New(Conn *sql.DB) domain.StudentRepository {
+	return &repository{
 		Conn,
 	}
 }
 
-func (m *postgresStudentRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Student, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Student, err error) {
 	rows, err := m.Conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (m *postgresStudentRepository) fetch(ctx context.Context, query string, arg
 	return result, nil
 }
 
-func (m *postgresStudentRepository) Fetch(ctx context.Context, q string, cursor int64, num int64) (res []domain.Student, err error) {
+func (m *repository) Fetch(ctx context.Context, q string, cursor int64, num int64) (res []domain.Student, err error) {
 	query := `SELECT id, srn, nsrn, name, gender, birth_place, birth_date, religion_id, address, telp,
 			school_before, accepted_grade, accepted_date, familly_status, familly_order, father_name,
 			father_address, father_profession, father_telp, mother_name, mother_address, mother_profession,
@@ -90,7 +90,7 @@ func (m *postgresStudentRepository) Fetch(ctx context.Context, q string, cursor 
 	return
 }
 
-func (m *postgresStudentRepository) GetByID(ctx context.Context, id int64) (res domain.Student, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.Student, err error) {
 	query := `SELECT id, srn, nsrn, name, gender, birth_place, birth_date, religion_id, address, telp,
 			school_before, accepted_grade, accepted_date, familly_status, familly_order, father_name,
 			father_address, father_profession, father_telp, mother_name, mother_address, mother_profession,
@@ -108,7 +108,7 @@ func (m *postgresStudentRepository) GetByID(ctx context.Context, id int64) (res 
     return
 }
 
-func (m *postgresStudentRepository) Store(ctx context.Context, t *domain.Student) (err error) {
+func (m *repository) Store(ctx context.Context, t *domain.Student) (err error) {
 	query := `INSERT INTO students (srn,nsrn,name,gender,birth_place,birth_date,religion_id,address,telp,
 		school_before,accepted_grade,accepted_date,familly_status,familly_order,father_name,father_address,father_profession,
 		father_telp,mother_name,mother_address,mother_profession,mother_telp,guardian_name,guardian_address,guardian_profession,
@@ -148,7 +148,7 @@ func (m *postgresStudentRepository) Store(ctx context.Context, t *domain.Student
 	return
 }
 
-func (m *postgresStudentRepository) Update(ctx context.Context, t *domain.Student) (error) {
+func (m *repository) Update(ctx context.Context, t *domain.Student) (error) {
 	query := `UPDATE students SET (srn,nsrn,name,gender,birth_place,birth_date,religion_id,address,telp,
 		school_before,accepted_grade,accepted_date,familly_status,familly_order,father_name,father_address,father_profession,
 		father_telp,mother_name,mother_address,mother_profession,mother_telp,guardian_name,guardian_address,guardian_profession,
@@ -196,7 +196,7 @@ func (m *postgresStudentRepository) Update(ctx context.Context, t *domain.Studen
     return nil
 }
 
-func (m *postgresStudentRepository) Delete(ctx context.Context, id int64) (err error) {
+func (m *repository) Delete(ctx context.Context, id int64) (err error) {
 	query := `DELETE FROM students WHERE id=$1`
 	result, err := m.Conn.ExecContext(ctx, query, id)
 	if err != nil {

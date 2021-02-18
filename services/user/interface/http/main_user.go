@@ -20,36 +20,36 @@ import (
     "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
-type UserHandler struct {
+type handler struct {
     userUsecase     domain.UserUsecase
     config          *config.Config
     mddl            *middleware.GoMiddleware
 }
 
-func NewUserHandler(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-    handler := &UserHandler{
+func New(r *gin.Engine, m domain.UserUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+    h := &handler{
         userUsecase:    m,
         config:         cfg,
         mddl:           mddl,
     }
 
     user := r.Group("/users")
-    user.Use(handler.mddl.Auth())
+    user.Use(h.mddl.Auth())
 
-    user.GET("/", handler.FetchUsers)
-    user.GET("user/:id", handler.Show)
-    user.POST("user", handler.Store)
-    user.PUT("user/:id", handler.Update)
-    user.DELETE("user/:id", handler.Delete)
-    user.DELETE("delete", handler.DeleteMultiple)
-    user.POST("import", handler.Import)
-    user.GET("auth-current", handler.CurrentLogin)
+    user.GET("/", h.FetchUsers)
+    user.GET("user/:id", h.Show)
+    user.POST("user", h.Store)
+    user.PUT("user/:id", h.Update)
+    user.DELETE("user/:id", h.Delete)
+    user.DELETE("delete", h.DeleteMultiple)
+    user.POST("import", h.Import)
+    user.GET("auth-current", h.CurrentLogin)
 
-    r.POST("/auth", handler.Autheticate)
-    r.POST("/refresh-token", handler.RefreshToken)
+    r.POST("/auth", h.Autheticate)
+    r.POST("/refresh-token", h.RefreshToken)
 }
 
-func (h *UserHandler) FetchUsers(c *gin.Context) {
+func (h *handler) FetchUsers(c *gin.Context) {
     limS , _ := c.GetQuery("limit")
     lim, _ := strconv.Atoi(limS)
     cursor, _ := c.GetQuery("cursor")
@@ -80,7 +80,7 @@ func (h *UserHandler) FetchUsers(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
-func (h *UserHandler) Autheticate(c *gin.Context) {
+func (h *handler) Autheticate(c *gin.Context) {
     var u dto.UserLogin
     if err := c.ShouldBindJSON(&u); err != nil {
         error_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -138,7 +138,7 @@ func (h *UserHandler) Autheticate(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success",data))
 }
 
-func (h *UserHandler) RefreshToken(c *gin.Context) {
+func (h *handler) RefreshToken(c *gin.Context) {
     var u dto.TokenResponse
     if err := c.ShouldBindJSON(&u); err != nil {
         error_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -172,7 +172,7 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success",data))
 }
 
-func (h *UserHandler) CurrentLogin(c *gin.Context) {
+func (h *handler) CurrentLogin(c *gin.Context) {
     userID := c.GetInt64("user_id")
 
     res, err := h.userUsecase.UserCurrentLogin(c, userID)
@@ -194,7 +194,7 @@ func (h *UserHandler) CurrentLogin(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h *UserHandler) Show(c *gin.Context) {
+func (h *handler) Show(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -224,7 +224,7 @@ func (h *UserHandler) Show(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h *UserHandler) Store(c *gin.Context) {
+func (h *handler) Store(c *gin.Context) {
     var u dto.UserCreatePayload
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -280,7 +280,7 @@ func (h *UserHandler) Store(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("create user success", data))
 }
 
-func (h *UserHandler) Import(c *gin.Context) {
+func (h *handler) Import(c *gin.Context) {
     file, header, err := c.Request.FormFile("file")
     if err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -341,7 +341,7 @@ func (h *UserHandler) Import(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("import user success", nil))
 }
 
-func (h *UserHandler) Update(c *gin.Context) {
+func (h *handler) Update(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -420,7 +420,7 @@ func (h *UserHandler) Update(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("update user success", u))
 }
 
-func (h *UserHandler) Delete(c *gin.Context) {
+func (h *handler) Delete(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -462,7 +462,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("delete user success", make([]string,0)))
 }
 
-func (h *UserHandler) DeleteMultiple(c *gin.Context) {
+func (h *handler) DeleteMultiple(c *gin.Context) {
     query, _ := c.GetQuery("q")
     if query == "" {
         err_code := helper.GetErrorCode(domain.ErrBadParamInput)

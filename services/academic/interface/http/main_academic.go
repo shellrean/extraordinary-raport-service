@@ -1,4 +1,4 @@
-package handler
+package http
 
 import (
 	"net/http"
@@ -13,26 +13,26 @@ import (
     "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
-type academicHandler struct {
+type handler struct {
 	academicUsecase 		domain.AcademicUsecase
 	config 					*config.Config
 	mddl 					*middleware.GoMiddleware
 }
 
-func NewAcademicHandler(r *gin.Engine, m domain.AcademicUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-	handler := &academicHandler {
+func New(r *gin.Engine, m domain.AcademicUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+	h := &handler {
 		academicUsecase:		m,
 		config:					cfg,
 		mddl:					mddl,
 	}
 	academic := r.Group("/academics")
-	academic.Use(handler.mddl.Auth())
+	academic.Use(h.mddl.Auth())
 	
-	academic.GET("/", handler.Fetch)
-	academic.POST("/", handler.Generate)
+	academic.GET("/", h.Fetch)
+	academic.POST("/", h.Generate)
 }
 
-func (h *academicHandler) Fetch(c *gin.Context) {
+func (h *handler) Fetch(c *gin.Context) {
 	res, err := h.academicUsecase.Fetch(c)
 	if err != nil {
 		err_code := helper.GetErrorCode(err)
@@ -55,7 +55,7 @@ func (h *academicHandler) Fetch(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
-func (h *academicHandler) Generate(c *gin.Context) {
+func (h *handler) Generate(c *gin.Context) {
 	res, err := h.academicUsecase.Generate(c)
 	if err != nil {
 		err_code := helper.GetErrorCode(err)

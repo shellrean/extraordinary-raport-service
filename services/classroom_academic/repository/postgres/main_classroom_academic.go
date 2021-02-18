@@ -8,17 +8,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type classroomAcademicRepository struct {
+type repository struct {
 	Conn *sql.DB
 }
 
-func NewPostgresClassroomAcademicRepository(Conn *sql.DB) domain.ClassroomAcademicRepository {
-	return &classroomAcademicRepository {
+func New(Conn *sql.DB) domain.ClassroomAcademicRepository {
+	return &repository {
 		Conn,
 	}
 }
 
-func (m *classroomAcademicRepository) fetch(ctx context.Context, query string, args ...interface{}) (res []domain.ClassroomAcademic, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (res []domain.ClassroomAcademic, err error) {
     rows, err := m.Conn.QueryContext(ctx, query, args...)
     if err != nil {
         return nil, err
@@ -56,7 +56,7 @@ func (m *classroomAcademicRepository) fetch(ctx context.Context, query string, a
     return
 }
 
-func (m *classroomAcademicRepository) Fetch(ctx context.Context, academicID int64) (res []domain.ClassroomAcademic, err error) {
+func (m *repository) Fetch(ctx context.Context, academicID int64) (res []domain.ClassroomAcademic, err error) {
 	query := `SELECT
 		ca.id,
 		ca.academic_id,
@@ -85,7 +85,7 @@ func (m *classroomAcademicRepository) Fetch(ctx context.Context, academicID int6
     return
 }
 
-func (m *classroomAcademicRepository) FetchByAcademicAndTeacher(ctx context.Context, academicID int64, userID int64) (res []domain.ClassroomAcademic, err error) {
+func (m *repository) FetchByAcademicAndTeacher(ctx context.Context, academicID int64, userID int64) (res []domain.ClassroomAcademic, err error) {
 	query := `SELECT
 		ca.id,
 		ca.academic_id,
@@ -114,7 +114,7 @@ func (m *classroomAcademicRepository) FetchByAcademicAndTeacher(ctx context.Cont
     return
 }
 
-func (m *classroomAcademicRepository) Store(ctx context.Context, ca *domain.ClassroomAcademic) (err error) {
+func (m *repository) Store(ctx context.Context, ca *domain.ClassroomAcademic) (err error) {
 	query := `INSERT INTO classroom_academics (academic_id, classroom_id, teacher_id, created_at, updated_at)
 		VALUES($1,$2,$3,$4,$5) RETURNING id`
 	err = m.Conn.QueryRowContext(ctx, query, 
@@ -130,7 +130,7 @@ func (m *classroomAcademicRepository) Store(ctx context.Context, ca *domain.Clas
 	return 
 }
 
-func (m *classroomAcademicRepository) GetByAcademicAndClass(ctx context.Context, a int64, c int64) (res domain.ClassroomAcademic, err error) {
+func (m *repository) GetByAcademicAndClass(ctx context.Context, a int64, c int64) (res domain.ClassroomAcademic, err error) {
 	query := `SELECT
 		ca.id,
 		ca.academic_id,
@@ -162,7 +162,7 @@ func (m *classroomAcademicRepository) GetByAcademicAndClass(ctx context.Context,
 	return
 }
 
-func (m *classroomAcademicRepository) GetByID(ctx context.Context, id int64) (res domain.ClassroomAcademic, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.ClassroomAcademic, err error) {
 	query := `SELECT
 		ca.id,
 		ca.academic_id,
@@ -194,7 +194,7 @@ func (m *classroomAcademicRepository) GetByID(ctx context.Context, id int64) (re
     return
 }
 
-func (m *classroomAcademicRepository) Update(ctx context.Context, ca *domain.ClassroomAcademic) (err error) {
+func (m *repository) Update(ctx context.Context, ca *domain.ClassroomAcademic) (err error) {
 	query := `UPDATE classroom_academics SET classroom_id=$1, teacher_id=$2, updated_at=$3
 		WHERE id=$4`
 	result, err := m.Conn.ExecContext(ctx, query,
@@ -218,7 +218,7 @@ func (m *classroomAcademicRepository) Update(ctx context.Context, ca *domain.Cla
 	return
 }
 
-func (m *classroomAcademicRepository) Delete(ctx context.Context, id int64) (err error) {
+func (m *repository) Delete(ctx context.Context, id int64) (err error) {
 	query := `DELETE FROM classroom_academics WHERE id=$1`
 	result, err := m.Conn.ExecContext(ctx, query, id)
 	if err != nil {

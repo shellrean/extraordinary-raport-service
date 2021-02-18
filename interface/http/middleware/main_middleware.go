@@ -14,7 +14,7 @@ type GoMiddleware struct {
 	cfg		*config.Config
 } 
 
-func InitMiddleware(cfg *config.Config) *GoMiddleware {
+func Init(cfg *config.Config) *GoMiddleware {
 	return &GoMiddleware{
 		cfg:	cfg,
 	}

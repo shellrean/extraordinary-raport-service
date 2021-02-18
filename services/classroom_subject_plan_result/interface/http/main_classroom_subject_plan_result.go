@@ -20,27 +20,27 @@ type sprUsecase domain.ClassroomSubjectPlanResultUsecase
 type sprResponse dto.ClassroomSubjectPlanResultResponse
 type sprRequest dto.ClassroomSubjectPlanResultRequest
 
-type sprHandler struct {
+type handler struct {
 	sprUsecase 	sprUsecase
 	cfg 		*config.Config
 	mddl 		*middleware.GoMiddleware
 }
 
-func NewClassroomSubjectPlanResultHandler(r *gin.Engine, u sprUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-	handler := &sprHandler{
+func New(r *gin.Engine, u sprUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+	h := &handler{
 		sprUsecase:	u,
 		cfg:		cfg,
 		mddl:		mddl,
 	}
 	spr := r.Group("/cspr")
-	spr.Use(handler.mddl.Auth())
+	spr.Use(h.mddl.Auth())
 
-	spr.POST("s", handler.Store) // Store single plan result
-	spr.GET("plan/:id", handler.FetchByPlan)
-	spr.GET("export/:id", handler.Export)
+	spr.POST("s", h.Store) // Store single plan result
+	spr.GET("plan/:id", h.FetchByPlan)
+	spr.GET("export/:id", h.Export)
 }
 
-func (h sprHandler) FetchByPlan(c *gin.Context) {
+func (h *handler) FetchByPlan(c *gin.Context) {
 	idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -79,7 +79,7 @@ func (h sprHandler) FetchByPlan(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }	
 
-func (h sprHandler) Store(c *gin.Context) {
+func (h *handler) Store(c *gin.Context) {
 	var u sprRequest
 	if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -143,7 +143,7 @@ func (h sprHandler) Store(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("create plan result success", u))
 }
 
-func (h sprHandler) Export(c *gin.Context) {
+func (h *handler) Export(c *gin.Context) {
 	idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {

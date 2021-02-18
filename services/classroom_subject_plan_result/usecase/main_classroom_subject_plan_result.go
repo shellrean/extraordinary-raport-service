@@ -17,7 +17,7 @@ type sRepoT domain.ClassroomStudentRepository
 type suRepoT domain.ClassroomSubjectRepository
 type plRepoT domain.ClassroomSubjectPlanRepository
 
-type sprUsecase struct {
+type usecase struct {
 	sprRepo 	sprRepoT
 	sRepo  		sRepoT
 	suRepo 		suRepoT
@@ -26,8 +26,8 @@ type sprUsecase struct {
 	cfg 		*config.Config
 }
 
-func NewClassroomSubjectPlanResultUsecase(m sprRepoT, m2 sRepoT, m3 suRepoT, m4 plRepoT, timeout time.Duration, cfg *config.Config) domain.ClassroomSubjectPlanResultUsecase {
-	return &sprUsecase{
+func New(m sprRepoT, m2 sRepoT, m3 suRepoT, m4 plRepoT, timeout time.Duration, cfg *config.Config) domain.ClassroomSubjectPlanResultUsecase {
+	return &usecase{
 		sprRepo:	m,
 		sRepo:		m2,
 		suRepo:		m3,
@@ -37,7 +37,7 @@ func NewClassroomSubjectPlanResultUsecase(m sprRepoT, m2 sRepoT, m3 suRepoT, m4 
 	}
 }
 
-func (u sprUsecase) getError(payload error) (err error) {
+func (u *usecase) getError(payload error) (err error) {
 	if u.cfg.Release{
 		log.Println(payload)
 		return domain.ErrServerError
@@ -45,7 +45,7 @@ func (u sprUsecase) getError(payload error) (err error) {
 	return payload
 }
 
-func (u sprUsecase) getPlanByID(ctx context.Context, id int64) (res domain.ClassroomSubjectPlan, err error) {
+func (u *usecase) getPlanByID(ctx context.Context, id int64) (res domain.ClassroomSubjectPlan, err error) {
 	res, err = u.plRepo.GetByID(ctx, id)
 	if err != nil {
 		return res, u.getError(err)
@@ -58,7 +58,7 @@ func (u sprUsecase) getPlanByID(ctx context.Context, id int64) (res domain.Class
 	return
 }
 
-func (u sprUsecase) Store(c context.Context, spr *domain.ClassroomSubjectPlanResult) (err error) {
+func (u *usecase) Store(c context.Context, spr *domain.ClassroomSubjectPlanResult) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 
@@ -113,7 +113,7 @@ func (u sprUsecase) Store(c context.Context, spr *domain.ClassroomSubjectPlanRes
 	return
 }
 
-func (u sprUsecase) FetchByPlan(c context.Context, planID int64) (res []domain.ClassroomSubjectPlanResult, err error) {
+func (u *usecase) FetchByPlan(c context.Context, planID int64) (res []domain.ClassroomSubjectPlanResult, err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 
@@ -130,7 +130,7 @@ func (u sprUsecase) FetchByPlan(c context.Context, planID int64) (res []domain.C
 	return
 }
 
-func (u sprUsecase) ExportByPlan(c context.Context, planID int64) (token string, err error) {
+func (u *usecase) ExportByPlan(c context.Context, planID int64) (token string, err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 

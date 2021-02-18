@@ -16,36 +16,36 @@ import (
     "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
-type classAcademicHandler struct {
+type handler struct {
 	classAcademicUsecase domain.ClassroomAcademicUsecase
 	config 				 *config.Config
 	mddl 				 *middleware.GoMiddleware
 }
 
-func NewClassAcademicHandler(
+func New(
 	r 		*gin.Engine,
 	m 		domain.ClassroomAcademicUsecase,
 	cfg 	*config.Config,
 	mddl 	*middleware.GoMiddleware,
 ) {
-	handler := &classAcademicHandler {
+	h := &handler {
 		classAcademicUsecase:		m,
 		config:						cfg,
 		mddl:						mddl,
 	}
 	ca := r.Group("/classroom-academics")
-	ca.Use(handler.mddl.Auth())
+	ca.Use(h.mddl.Auth())
 
-    ca.GET("/", handler.Fetch)
-    ca.GET("/classroom-academic/:id", handler.Show)
-	ca.POST("/classroom-academic", handler.Store)
-	ca.PUT("/classroom-academic/:id", handler.Update)
-    ca.DELETE("/classroom-academic/:id", handler.Delete)
+    ca.GET("/", h.Fetch)
+    ca.GET("/classroom-academic/:id", h.Show)
+	ca.POST("/classroom-academic", h.Store)
+	ca.PUT("/classroom-academic/:id", h.Update)
+    ca.DELETE("/classroom-academic/:id", h.Delete)
     
-    ca.GET("/academic/:id", handler.FetchByAcademic)
+    ca.GET("/academic/:id", h.FetchByAcademic)
 }	
 
-func (h *classAcademicHandler) Fetch(c *gin.Context) {
+func (h *handler) Fetch(c *gin.Context) {
     currentRoleUser := c.GetInt("role")
     currentUserID := c.GetInt64("user_id")
     user := domain.User{
@@ -80,7 +80,7 @@ func (h *classAcademicHandler) Fetch(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
-func (h *classAcademicHandler) FetchByAcademic(c *gin.Context) {
+func (h *handler) FetchByAcademic(c *gin.Context) {
     idS := c.Param("id")
 	AcademicID, err := strconv.Atoi(idS)
 	if err != nil {
@@ -119,7 +119,7 @@ func (h *classAcademicHandler) FetchByAcademic(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h *classAcademicHandler) Show(c *gin.Context) {
+func (h *handler) Show(c *gin.Context) {
     idS := c.Param("id")
 	id, err := strconv.Atoi(idS)
 	if err != nil {
@@ -154,7 +154,7 @@ func (h *classAcademicHandler) Show(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
-func (h *classAcademicHandler) Store(c *gin.Context) {
+func (h *handler) Store(c *gin.Context) {
 	var u dto.ClassroomAcademicRequest
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -209,7 +209,7 @@ func (h *classAcademicHandler) Store(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success create academic classroom", u))
 }
 
-func (h *classAcademicHandler) Update(c *gin.Context) {
+func (h *handler) Update(c *gin.Context) {
 	idS := c.Param("id")
 	id, err := strconv.Atoi(idS)
 	if err != nil {
@@ -291,7 +291,7 @@ func (h *classAcademicHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success update academic classroom", u))
 }
 
-func (h *classAcademicHandler) Delete(c *gin.Context) {
+func (h *handler) Delete(c *gin.Context) {
 	idS := c.Param("id")
 	id, err := strconv.Atoi(idS)
 	if err != nil {

@@ -10,15 +10,15 @@ import (
     "github.com/shellrean/extraordinary-raport/config"
 )
 
-type settingUsecase struct {
+type usecase struct {
 	settRepo		domain.SettingRepository
 	academicRepo	domain.AcademicRepository
 	contextTimeout  time.Duration
     cfg             *config.Config
 }
 
-func NewSettingUsecase(d domain.SettingRepository, m domain.AcademicRepository, timeout time.Duration, cfg *config.Config) domain.SettingUsecase {
-	return &settingUsecase {
+func New(d domain.SettingRepository, m domain.AcademicRepository, timeout time.Duration, cfg *config.Config) domain.SettingUsecase {
+	return &usecase {
 		settRepo:		d,
 		academicRepo:	m,
 		contextTimeout:	timeout,
@@ -26,7 +26,7 @@ func NewSettingUsecase(d domain.SettingRepository, m domain.AcademicRepository, 
 	}
 }
 
-func (u settingUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
 	if u.cfg.Release {
 		log.Println(err.Error())
 		return domain.ErrServerError
@@ -34,7 +34,7 @@ func (u settingUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u settingUsecase) Fetch(c context.Context, names []string) (res []domain.Setting, err error) {
+func (u *usecase) Fetch(c context.Context, names []string) (res []domain.Setting, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 	
@@ -46,7 +46,7 @@ func (u settingUsecase) Fetch(c context.Context, names []string) (res []domain.S
 	return
 }
 
-func (u settingUsecase) beforeUpdateAcademicActive(ctx context.Context, s *domain.Setting) (err error) {
+func (u *usecase) beforeUpdateAcademicActive(ctx context.Context, s *domain.Setting) (err error) {
 	id, err := strconv.Atoi(s.Value)
 	if err != nil {
 		err = domain.ErrSettingNotFound
@@ -66,7 +66,7 @@ func (u settingUsecase) beforeUpdateAcademicActive(ctx context.Context, s *domai
 	return
 }
 
-func (u settingUsecase) Update(c context.Context, s *domain.Setting) (err error) {
+func (u *usecase) Update(c context.Context, s *domain.Setting) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 

@@ -10,7 +10,7 @@ import (
 	"github.com/shellrean/extraordinary-raport/config"
 )
 
-type csuUsecase struct {
+type usecase struct {
 	csuRepo			domain.ClassroomSubjectRepository
 	csaRepo 		domain.ClassroomAcademicRepository
 	subjectRepo 	domain.SubjectRepository
@@ -20,7 +20,7 @@ type csuUsecase struct {
 	cfg 			*config.Config
 }
 
-func NewClassroomSubjectUsecase(
+func New(
 	m 		domain.ClassroomSubjectRepository, 
 	m2 		domain.ClassroomAcademicRepository, 
 	m3		domain.SubjectRepository,
@@ -29,7 +29,7 @@ func NewClassroomSubjectUsecase(
 	timeout time.Duration, 
 	cfg 	*config.Config,
 ) domain.ClassroomSubjectUsecase{
-	return &csuUsecase{
+	return &usecase{
 		csuRepo:		m,
 		csaRepo:		m2,
 		subjectRepo:	m3,
@@ -40,7 +40,7 @@ func NewClassroomSubjectUsecase(
 	}
 }
 
-func (u csuUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
 	if u.cfg.Release {
 		log.Println(err.Error())
 		return domain.ErrServerError
@@ -48,7 +48,7 @@ func (u csuUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u csuUsecase) Fetch(c context.Context, user domain.User) (res []domain.ClassroomSubject, err error) {
+func (u *usecase) Fetch(c context.Context, user domain.User) (res []domain.ClassroomSubject, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -80,7 +80,7 @@ func (u csuUsecase) Fetch(c context.Context, user domain.User) (res []domain.Cla
 	return
 }
 
-func (u csuUsecase) FetchByClassroom(c context.Context, academicClassroomID int64) (res []domain.ClassroomSubject, err error) {
+func (u *usecase) FetchByClassroom(c context.Context, academicClassroomID int64) (res []domain.ClassroomSubject, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -102,7 +102,7 @@ func (u csuUsecase) FetchByClassroom(c context.Context, academicClassroomID int6
 	return
 }
 
-func (u csuUsecase) Store(c context.Context, cs *domain.ClassroomSubject) (err error) {
+func (u *usecase) Store(c context.Context, cs *domain.ClassroomSubject) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -156,7 +156,7 @@ func (u csuUsecase) Store(c context.Context, cs *domain.ClassroomSubject) (err e
 	return
 }
 
-func (u csuUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomSubject, err error) {
+func (u *usecase) GetByID(c context.Context, id int64) (res domain.ClassroomSubject, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -173,7 +173,7 @@ func (u csuUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomSu
 	return
 }
 
-func (u csuUsecase) Update(c context.Context, cs *domain.ClassroomSubject) (err error) {
+func (u *usecase) Update(c context.Context, cs *domain.ClassroomSubject) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -236,7 +236,7 @@ func (u csuUsecase) Update(c context.Context, cs *domain.ClassroomSubject) (err 
 	return
 }
 
-func (u csuUsecase) Delete(c context.Context, id int64) (err error) {
+func (u *usecase) Delete(c context.Context, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -257,7 +257,7 @@ func (u csuUsecase) Delete(c context.Context, id int64) (err error) {
 	return
 }
 
-func (u csuUsecase) chunkSlice(slice []domain.ClassroomSubject, chunkSize int) [][]domain.ClassroomSubject {
+func (u *usecase) chunkSlice(slice []domain.ClassroomSubject, chunkSize int) [][]domain.ClassroomSubject {
 	var chunks [][]domain.ClassroomSubject
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize
@@ -272,7 +272,7 @@ func (u csuUsecase) chunkSlice(slice []domain.ClassroomSubject, chunkSize int) [
 	return chunks
 }
 
-func (u csuUsecase) CopyClassroomSubject(c context.Context, ClassroomAcademicID int64, ToClassroomAcademicID int64) (err error) {
+func (u *usecase) CopyClassroomSubject(c context.Context, ClassroomAcademicID int64, ToClassroomAcademicID int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 

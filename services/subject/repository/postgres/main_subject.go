@@ -8,17 +8,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type subjectRepository struct{
+type repository struct{
 	Conn *sql.DB
 }
 
-func NewPostgresSubjectRepository(Conn *sql.DB) domain.SubjectRepository {
-	return &subjectRepository{
+func New(Conn *sql.DB) domain.SubjectRepository {
+	return &repository{
 		Conn,
 	}
 }
 
-func (m *subjectRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Subject, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Subject, err error) {
     rows, err := m.Conn.QueryContext(ctx, query, args...)
     if err != nil {
         return nil, err
@@ -48,7 +48,7 @@ func (m *subjectRepository) fetch(ctx context.Context, query string, args ...int
     return
 }
 
-func (m *subjectRepository) Fetch(ctx context.Context, cursor int64, num int64) (res []domain.Subject, err error) {
+func (m *repository) Fetch(ctx context.Context, cursor int64, num int64) (res []domain.Subject, err error) {
 	query := `SELECT id,name,type,created_at,updated_at
 		FROM subjects WHERE id > $1 ORDER BY id LIMIT $2`
 	
@@ -59,7 +59,7 @@ func (m *subjectRepository) Fetch(ctx context.Context, cursor int64, num int64) 
 	return
 }
 
-func (m *subjectRepository) GetByID(ctx context.Context, id int64) (res domain.Subject, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.Subject, err error) {
     query := `SELECT id,name,type,created_at,updated_at
         FROM subjects WHERE id = $1`
 
@@ -74,7 +74,7 @@ func (m *subjectRepository) GetByID(ctx context.Context, id int64) (res domain.S
     return
 }
 
-func (m *subjectRepository) Store(ctx context.Context, s *domain.Subject) (err error) {
+func (m *repository) Store(ctx context.Context, s *domain.Subject) (err error) {
     query := `INSERT INTO subjects (name,type,created_at,updated_at)
         VALUES($1,$2,$3,$4) RETURNING id`
     err = m.Conn.QueryRowContext(ctx, query, 
@@ -89,7 +89,7 @@ func (m *subjectRepository) Store(ctx context.Context, s *domain.Subject) (err e
     return
 }
 
-func (m *subjectRepository) Update(ctx context.Context, s *domain.Subject) (err error) {
+func (m *repository) Update(ctx context.Context, s *domain.Subject) (err error) {
     query := `UPDATE subjects SET name=$1, type=$2, updated_at=$3 WHERE id=$4`
     
     result, err := m.Conn.ExecContext(ctx, query, s.Name, s.Type, s.UpdatedAt, s.ID)
@@ -106,7 +106,7 @@ func (m *subjectRepository) Update(ctx context.Context, s *domain.Subject) (err 
     return
 }
 
-func (m *subjectRepository) Delete(ctx context.Context, id int64) (err error) {
+func (m *repository) Delete(ctx context.Context, id int64) (err error) {
     query := `DELETE FROM subjects WHERE id=$1`
     
     result, err := m.Conn.ExecContext(ctx, query, id)

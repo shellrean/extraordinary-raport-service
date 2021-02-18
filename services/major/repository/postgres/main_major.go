@@ -7,17 +7,17 @@ import (
 	"github.com/shellrean/extraordinary-raport/domain"
 )
 
-type postgresMajorRepository struct {
+type repository struct {
 	Conn *sql.DB
 }
 
-func NewPostgresMajorRepository(Conn *sql.DB) domain.MajorRepository{
-	return &postgresMajorRepository{
+func New(Conn *sql.DB) domain.MajorRepository{
+	return &repository{
 		Conn,
 	}
 }
 
-func (m *postgresMajorRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Major, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Major, err error) {
 	rows, err := m.Conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		return
@@ -46,7 +46,7 @@ func (m *postgresMajorRepository) fetch(ctx context.Context, query string, args 
 	return
 }
 
-func (m *postgresMajorRepository) Fetch(ctx context.Context) (res []domain.Major, err error) {
+func (m *repository) Fetch(ctx context.Context) (res []domain.Major, err error) {
 	query := `SELECT id, name, created_at, updated_at
 		FROM majors`
 	
@@ -57,7 +57,7 @@ func (m *postgresMajorRepository) Fetch(ctx context.Context) (res []domain.Major
 	return
 }
 
-func (m *postgresMajorRepository) GetByID(ctx context.Context, id int64) (res domain.Major, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.Major, err error) {
 	query := `SELECT id,name,created_at,updated_at FROM majors
 		WHERE id = $1`
 	list, err := m.fetch(ctx, query, id)

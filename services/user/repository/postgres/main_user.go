@@ -10,17 +10,17 @@ import (
     "github.com/shellrean/extraordinary-raport/domain"
 )
 
-type postgresUserRepository struct {
+type repository struct {
     Conn *sql.DB
 }
 
-func NewPostgresUserRepository(Conn *sql.DB) domain.UserRepository {
-    return &postgresUserRepository{
+func New(Conn *sql.DB) domain.UserRepository {
+    return &repository{
         Conn,
     }
 }
 
-func (m *postgresUserRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.User, err error) {
+func (m *repository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.User, err error) {
     rows, err := m.Conn.QueryContext(ctx, query, args...)
     if err != nil {
         return nil, err
@@ -53,7 +53,7 @@ func (m *postgresUserRepository) fetch(ctx context.Context, query string, args .
     return
 }
 
-func (m *postgresUserRepository) Fetch(ctx context.Context, q string, cursor int64, num int64) (res []domain.User, err error) {
+func (m *repository) Fetch(ctx context.Context, q string, cursor int64, num int64) (res []domain.User, err error) {
     query := `SELECT id,name,email,password,role,created_at,updated_at
             FROM users WHERE (LOWER(name) LIKE '%' || $1 || '%' OR email LIKE '%' || $2 || '%') AND role=$3 AND id > $4 ORDER BY id LIMIT $5`
 
@@ -65,7 +65,7 @@ func (m *postgresUserRepository) Fetch(ctx context.Context, q string, cursor int
     return
 }
 
-func (m *postgresUserRepository) GetByID(ctx context.Context, id int64) (res domain.User, err error) {
+func (m *repository) GetByID(ctx context.Context, id int64) (res domain.User, err error) {
     query := `SELECT id,name,email,password,role,created_at,updated_at
             FROM users WHERE id=$1`
 
@@ -80,7 +80,7 @@ func (m *postgresUserRepository) GetByID(ctx context.Context, id int64) (res dom
     return
 }
 
-func (m *postgresUserRepository) GetByEmail(ctx context.Context, email string) (res domain.User, err error) {
+func (m *repository) GetByEmail(ctx context.Context, email string) (res domain.User, err error) {
     query := `SELECT id,name,email,password,role,created_at,updated_at
             FROM users WHERE email=$1`
 
@@ -98,7 +98,7 @@ func (m *postgresUserRepository) GetByEmail(ctx context.Context, email string) (
     return
 }
 
-func (m *postgresUserRepository) Store(ctx context.Context, u *domain.User) (err error) {
+func (m *repository) Store(ctx context.Context, u *domain.User) (err error) {
     query := `INSERT INTO users (name, email, password, role,created_at, updated_at)
             VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`
         
@@ -110,7 +110,7 @@ func (m *postgresUserRepository) Store(ctx context.Context, u *domain.User) (err
     return
 }
 
-func (m *postgresUserRepository) StoreMultiple(ctx context.Context, us []domain.User) (err error) {
+func (m *repository) StoreMultiple(ctx context.Context, us []domain.User) (err error) {
     var valueStrings []string
     var valueArgs []interface{}
 
@@ -147,7 +147,7 @@ func (m *postgresUserRepository) StoreMultiple(ctx context.Context, us []domain.
     return
 }
 
-func (m *postgresUserRepository) Update(ctx context.Context, u *domain.User) (err error) {
+func (m *repository) Update(ctx context.Context, u *domain.User) (err error) {
     query := `UPDATE users SET name=$1, email=$2, password=$3, role=$4, updated_at=$5
             WHERE id=$6`
 
@@ -165,7 +165,7 @@ func (m *postgresUserRepository) Update(ctx context.Context, u *domain.User) (er
     return
 }
 
-func (m *postgresUserRepository) Delete(ctx context.Context, id int64) (err error) {
+func (m *repository) Delete(ctx context.Context, id int64) (err error) {
     query := `DELETE FROM users WHERE id=$1`
     result, err := m.Conn.ExecContext(ctx, query, id)
     if err != nil {
@@ -181,7 +181,7 @@ func (m *postgresUserRepository) Delete(ctx context.Context, id int64) (err erro
     return
 }
 
-func (m *postgresUserRepository) DeleteMultiple(ctx context.Context, ids []string) (err error) {
+func (m *repository) DeleteMultiple(ctx context.Context, ids []string) (err error) {
     query := `DELETE FROM users WHERE id = ANY($1)`
 
     _, err = m.Conn.ExecContext(ctx, query, pq.Array(ids))

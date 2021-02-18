@@ -16,29 +16,29 @@ import (
 	"github.com/shellrean/extraordinary-raport/interface/http/middleware"
 )
 
-type classHandler struct {
+type handler struct {
 	classUsecase 		domain.ClassroomUsecase
 	config				*config.Config
 	mddl 				*middleware.GoMiddleware
 }
 
-func NewClassroomHandler(r *gin.Engine, m domain.ClassroomUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-	handler := &classHandler {
+func New(r *gin.Engine, m domain.ClassroomUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+	h := &handler {
 		classUsecase:		m,
 		config:				cfg,
 		mddl:				mddl,
 	}
 	class := r.Group("/classrooms")
-	class.Use(handler.mddl.Auth())
+	class.Use(h.mddl.Auth())
 
-	class.GET("/", handler.Fetch)
-	class.GET("/:id", handler.Show)
-	class.POST("/", handler.Store)
-	class.PUT("/:id", handler.Update)
-	class.DELETE("/:id", handler.Delete)
+	class.GET("/", h.Fetch)
+	class.GET("/:id", h.Show)
+	class.POST("/", h.Store)
+	class.PUT("/:id", h.Update)
+	class.DELETE("/:id", h.Delete)
 }
 
-func (h *classHandler) Fetch(c *gin.Context) {
+func (h *handler) Fetch(c *gin.Context) {
 	res, err := h.classUsecase.Fetch(c)
 	if err != nil {
 		err_code := helper.GetErrorCode(err)
@@ -63,7 +63,7 @@ func (h *classHandler) Fetch(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
-func (h *classHandler) Show(c *gin.Context) {
+func (h *handler) Show(c *gin.Context) {
 	idS := c.Param("id")
 	id, err := strconv.Atoi(idS)
     if err != nil {
@@ -94,7 +94,7 @@ func (h *classHandler) Show(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h *classHandler) Store(c *gin.Context) {
+func (h *handler) Store(c *gin.Context) {
 	var cl dto.ClassroomRequest
 	if err := c.ShouldBindJSON(&cl); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -154,7 +154,7 @@ func (h *classHandler) Store(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("create classroom success", data))
 }
 
-func (h *classHandler) Update(c *gin.Context) {
+func (h *handler) Update(c *gin.Context) {
 	idS := c.Param("id")
 	id, err := strconv.Atoi(idS)
     if err != nil {
@@ -245,7 +245,7 @@ func (h *classHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("update classroom success", data))
 }
 
-func (h *classHandler) Delete(c *gin.Context) {
+func (h *handler) Delete(c *gin.Context) {
 	idS := c.Param("id")
 	id, err := strconv.Atoi(idS)
     if err != nil {

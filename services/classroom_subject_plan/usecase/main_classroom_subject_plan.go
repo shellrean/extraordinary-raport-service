@@ -11,7 +11,7 @@ import (
 	"github.com/shellrean/extraordinary-raport/config"
 )
 
-type csPlanUsecase struct {
+type usecase struct {
 	cspRepo domain.ClassroomSubjectPlanRepository
 	usrRepo domain.UserRepository
 	csRepo 	domain.ClassroomSubjectRepository
@@ -21,8 +21,8 @@ type csPlanUsecase struct {
 	cfg 	*config.Config
 }
 
-func NewClassroomSubjectPlanUsecase(m domain.ClassroomSubjectPlanRepository, m2 domain.UserRepository, m3 domain.ClassroomSubjectRepository, m4 domain.ClassroomAcademicRepository, m5 domain.SettingRepository, timeout time.Duration, cfg *config.Config) domain.ClassroomSubjectPlanUsecase{
-	return &csPlanUsecase{
+func New(m domain.ClassroomSubjectPlanRepository, m2 domain.UserRepository, m3 domain.ClassroomSubjectRepository, m4 domain.ClassroomAcademicRepository, m5 domain.SettingRepository, timeout time.Duration, cfg *config.Config) domain.ClassroomSubjectPlanUsecase{
+	return &usecase{
 		cspRepo:	m,
 		usrRepo:	m2,
 		csRepo:		m3,
@@ -33,7 +33,7 @@ func NewClassroomSubjectPlanUsecase(m domain.ClassroomSubjectPlanRepository, m2 
 	}
 }
 
-func (u csPlanUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
 	if u.cfg.Release {
 		log.Println(err)
 		return domain.ErrServerError
@@ -41,7 +41,7 @@ func (u csPlanUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u csPlanUsecase) Fetch(c context.Context, query string, userID int64, classID int64) (res []domain.ClassroomSubjectPlan, err error) {
+func (u *usecase) Fetch(c context.Context, query string, userID int64, classID int64) (res []domain.ClassroomSubjectPlan, err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 	
@@ -83,7 +83,7 @@ func (u csPlanUsecase) Fetch(c context.Context, query string, userID int64, clas
 	return
 }
 
-func (u csPlanUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomSubjectPlan, err error) {
+func (u *usecase) GetByID(c context.Context, id int64) (res domain.ClassroomSubjectPlan, err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 
@@ -99,7 +99,7 @@ func (u csPlanUsecase) GetByID(c context.Context, id int64) (res domain.Classroo
 	return
 }
 
-func (u csPlanUsecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
+func (u *usecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 
@@ -149,7 +149,7 @@ func (u csPlanUsecase) Store(c context.Context, csp *domain.ClassroomSubjectPlan
 	return
 }
 
-func (u csPlanUsecase) Update(c context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
+func (u *usecase) Update(c context.Context, csp *domain.ClassroomSubjectPlan) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 
@@ -208,7 +208,7 @@ func (u csPlanUsecase) Update(c context.Context, csp *domain.ClassroomSubjectPla
 	return
 }
 
-func (u csPlanUsecase) Delete(c context.Context, id int64) (err error) {
+func (u *usecase) Delete(c context.Context, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 
@@ -230,7 +230,7 @@ func (u csPlanUsecase) Delete(c context.Context, id int64) (err error) {
 	return	
 }
 
-func (u csPlanUsecase) DeleteMultiple(c context.Context, query string) (err error) {
+func (u *usecase) DeleteMultiple(c context.Context, query string) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
 

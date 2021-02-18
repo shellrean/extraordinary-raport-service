@@ -14,27 +14,27 @@ import (
     "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
-type settingHanlder struct {
+type handler struct {
 	settUsecase 		domain.SettingUsecase
 	config 				*config.Config
 	mddl 				*middleware.GoMiddleware
 }
 
-func NewSettingHandler(r *gin.Engine, m domain.SettingUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-	handler := &settingHanlder {
+func New(r *gin.Engine, m domain.SettingUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+	h := &handler {
 		settUsecase:	m,
 		config:			cfg,
 		mddl:			mddl,	
 	}
 
 	setting := r.Group("/settings")
-	setting.Use(handler.mddl.Auth())
+	setting.Use(h.mddl.Auth())
 
-	setting.GET("/", handler.Fetch)
-	setting.PUT("/", handler.Update)
+	setting.GET("/", h.Fetch)
+	setting.PUT("/", h.Update)
 }
 
-func (h *settingHanlder) Fetch(c *gin.Context) {
+func (h *handler) Fetch(c *gin.Context) {
 	query, _ := c.GetQuery("q")
 	if query == "" {
         err_code := helper.GetErrorCode(domain.ErrBadParamInput)
@@ -71,7 +71,7 @@ func (h *settingHanlder) Fetch(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data)) 
 }
 
-func (h *settingHanlder) Update(c *gin.Context) {
+func (h *handler) Update(c *gin.Context) {
 	var u dto.SettingResponse
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)

@@ -8,7 +8,7 @@ import (
     "gopkg.in/yaml.v2"
 )
 
-func NewConfig(configPath string) (*Config, error) {
+func New(configPath string) (*Config, error) {
     // Create config structure
     config := &Config{}
 

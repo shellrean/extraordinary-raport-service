@@ -16,30 +16,30 @@ import (
     "github.com/shellrean/extraordinary-raport/interface/http/api"
 )
 
-type cspHandler struct {
+type handler struct {
 	cspUsecase	domain.ClassroomSubjectPlanUsecase
 	config 		*config.Config
 	mddl 		*middleware.GoMiddleware
 }
 
-func NewClassroomSubjectPlanHandler(r *gin.Engine, m domain.ClassroomSubjectPlanUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
-	handler := &cspHandler {
+func New(r *gin.Engine, m domain.ClassroomSubjectPlanUsecase, cfg *config.Config, mddl *middleware.GoMiddleware) {
+	h := &handler {
 		cspUsecase:	m,
 		config:		cfg,
 		mddl:		mddl,
 	}
 	csp := r.Group("/classroom-subject-plans")
-	csp.Use(handler.mddl.Auth())
+	csp.Use(h.mddl.Auth())
 
-    csp.POST("/", handler.mddl.MustRole([]int{domain.RoleTeacher, domain.RoleAdmin}), handler.Fetch)
-	csp.POST("/classroom-subject-plan", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Store)
-	csp.PUT("/classroom-subject-plan", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Update)
-    csp.DELETE("/classroom-subject-plan/:id", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.Delete)
-    csp.DELETE("delete", handler.mddl.MustRole([]int{domain.RoleTeacher}), handler.DeleteMultiple)
-    csp.GET("/classroom-subject-plan/:id", handler.mddl.MustRole([]int{domain.RoleTeacher, domain.RoleAdmin}), handler.Show)
+    csp.POST("/", h.mddl.MustRole([]int{domain.RoleTeacher, domain.RoleAdmin}), h.Fetch)
+	csp.POST("/classroom-subject-plan", h.mddl.MustRole([]int{domain.RoleTeacher}), h.Store)
+	csp.PUT("/classroom-subject-plan", h.mddl.MustRole([]int{domain.RoleTeacher}), h.Update)
+    csp.DELETE("/classroom-subject-plan/:id", h.mddl.MustRole([]int{domain.RoleTeacher}), h.Delete)
+    csp.DELETE("delete", h.mddl.MustRole([]int{domain.RoleTeacher}), h.DeleteMultiple)
+    csp.GET("/classroom-subject-plan/:id", h.mddl.MustRole([]int{domain.RoleTeacher, domain.RoleAdmin}), h.Show)
 }
 
-func (h cspHandler) Fetch(c *gin.Context) {
+func (h *handler) Fetch(c *gin.Context) {
     var u dto.ClassroomSubjectPlanFetchRequest
     if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -88,7 +88,7 @@ func (h cspHandler) Fetch(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h cspHandler) Show(c *gin.Context) {
+func (h *handler) Show(c *gin.Context) {
     idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -137,7 +137,7 @@ func (h cspHandler) Show(c *gin.Context) {
     c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
-func (h cspHandler) Store(c *gin.Context) {
+func (h *handler) Store(c *gin.Context) {
 	var u dto.ClassroomSubjectPlanRequest
 	if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -206,7 +206,7 @@ func (h cspHandler) Store(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("create classroom subject plan success", u))
 }
 
-func (h cspHandler) Update(c *gin.Context) {
+func (h *handler) Update(c *gin.Context) {
 	var u dto.ClassroomSubjectPlanRequest
 	if err := c.ShouldBindJSON(&u); err != nil {
         err_code := helper.GetErrorCode(domain.ErrUnprocess)
@@ -274,7 +274,7 @@ func (h cspHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("update classroom subject plan success", u))
 }
 
-func (h cspHandler) Delete(c *gin.Context) {
+func (h *handler) Delete(c *gin.Context) {
 	idS := c.Param("id")
     id, err := strconv.Atoi(idS)
     if err != nil {
@@ -298,7 +298,7 @@ func (h cspHandler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, api.ResponseSuccess("delete classroom subject plan success", nil))
 }
 
-func (h cspHandler) DeleteMultiple(c *gin.Context) {
+func (h *handler) DeleteMultiple(c *gin.Context) {
     query, _ := c.GetQuery("q")
     if query == "" {
         err_code := helper.GetErrorCode(domain.ErrBadParamInput)

@@ -10,21 +10,21 @@ import (
 	"github.com/shellrean/extraordinary-raport/config"
 )
 
-type academicUsecase struct {
+type usecase struct {
 	academicRepo		domain.AcademicRepository
 	contextTimeout 		time.Duration
 	cfg 				*config.Config
 }
 
-func NewAcademicUsecase(d domain.AcademicRepository, timeout time.Duration, cfg *config.Config) domain.AcademicUsecase {
-	return &academicUsecase {
+func New(d domain.AcademicRepository, timeout time.Duration, cfg *config.Config) domain.AcademicUsecase {
+	return &usecase {
 		academicRepo:		d,
 		contextTimeout:		timeout,
 		cfg:				cfg,
 	}	
 }
 
-func (u academicUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
 	if u.cfg.Release {
 		log.Println(err.Error())
 		return domain.ErrServerError
@@ -32,7 +32,7 @@ func (u academicUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u academicUsecase) Fetch(c context.Context) (res []domain.Academic, err error) {
+func (u *usecase) Fetch(c context.Context) (res []domain.Academic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -44,7 +44,7 @@ func (u academicUsecase) Fetch(c context.Context) (res []domain.Academic, err er
 	return
 }
 
-func (u academicUsecase) Generate(c context.Context) (res domain.Academic, err error) {
+func (u *usecase) Generate(c context.Context) (res domain.Academic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 

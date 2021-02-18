@@ -10,7 +10,7 @@ import (
 	"github.com/shellrean/extraordinary-raport/config"
 )
 
-type classroomAcademicUsecase struct {
+type usecase struct {
 	classAcademicRepo		domain.ClassroomAcademicRepository
 	settingRepo				domain.SettingRepository
 	userRepo				domain.UserRepository
@@ -19,7 +19,7 @@ type classroomAcademicUsecase struct {
 	cfg 					*config.Config
 }
 
-func NewClassroomAcademicUsecase(
+func New(
 	d 		domain.ClassroomAcademicRepository, 
 	s 		domain.SettingRepository,
 	u 		domain.UserRepository,
@@ -27,7 +27,7 @@ func NewClassroomAcademicUsecase(
 	timeout time.Duration, 
 	cfg 	*config.Config,
 ) domain.ClassroomAcademicUsecase {
-	return &classroomAcademicUsecase {
+	return &usecase {
 		classAcademicRepo:		d,
 		settingRepo:			s,
 		userRepo:				u,
@@ -37,7 +37,7 @@ func NewClassroomAcademicUsecase(
 	}
 }
 
-func (u classroomAcademicUsecase) getError(err error) (error) {
+func (u *usecase) getError(err error) (error) {
 	if u.cfg.Release {
 		log.Println(err.Error())
 		return domain.ErrServerError
@@ -45,7 +45,7 @@ func (u classroomAcademicUsecase) getError(err error) (error) {
 	return err
 }
 
-func (u classroomAcademicUsecase) getAcademicID(ctx context.Context) (int, error) {
+func (u *usecase) getAcademicID(ctx context.Context) (int, error) {
 	sett, err := u.settingRepo.GetByName(ctx, domain.SettingAcademicActive)
 	if err != nil {
 		return 0, u.getError(err)
@@ -63,7 +63,7 @@ func (u classroomAcademicUsecase) getAcademicID(ctx context.Context) (int, error
 	return id, nil
 }
 
-func (u classroomAcademicUsecase) Fetch(c context.Context, usr domain.User) (res []domain.ClassroomAcademic, err error) {
+func (u *usecase) Fetch(c context.Context, usr domain.User) (res []domain.ClassroomAcademic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -85,7 +85,7 @@ func (u classroomAcademicUsecase) Fetch(c context.Context, usr domain.User) (res
 	return
 }
 
-func (u classroomAcademicUsecase) FetchByAcademic(c context.Context, academicID int64) (res []domain.ClassroomAcademic, err error) {
+func (u *usecase) FetchByAcademic(c context.Context, academicID int64) (res []domain.ClassroomAcademic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -97,7 +97,7 @@ func (u classroomAcademicUsecase) FetchByAcademic(c context.Context, academicID 
 	return
 }
 
-func (u classroomAcademicUsecase) GetByID(c context.Context, id int64) (res domain.ClassroomAcademic, err error) {
+func (u *usecase) GetByID(c context.Context, id int64) (res domain.ClassroomAcademic, err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 	
@@ -113,7 +113,7 @@ func (u classroomAcademicUsecase) GetByID(c context.Context, id int64) (res doma
 	return
 }
 
-func (u classroomAcademicUsecase) Store(c context.Context, ca *domain.ClassroomAcademic) (err error) {
+func (u *usecase) Store(c context.Context, ca *domain.ClassroomAcademic) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -163,7 +163,7 @@ func (u classroomAcademicUsecase) Store(c context.Context, ca *domain.ClassroomA
 	return nil
 }
 
-func (u classroomAcademicUsecase) Update(c context.Context, ca *domain.ClassroomAcademic) (err error) {
+func (u *usecase) Update(c context.Context, ca *domain.ClassroomAcademic) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
@@ -225,7 +225,7 @@ func (u classroomAcademicUsecase) Update(c context.Context, ca *domain.Classroom
 	return nil
 }
 
-func (u classroomAcademicUsecase) Delete(c context.Context, id int64) (err error) {
+func (u *usecase) Delete(c context.Context, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.contextTimeout)
 	defer cancel()
 
