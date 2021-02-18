@@ -16,6 +16,7 @@ type ExschoolStudent struct {
 type ExschoolStudentRepository interface {
 	FetchByClassroom(ctx context.Context, classroomID int64) ([]ExschoolStudent, error)
 	GetByID(ctx context.Context, id int64) (ExschoolStudent, error)
+	GetByExschoolAndStudent(ctx context.Context, exID, sID int64) (ExschoolStudent, error)
 	Store(ctx context.Context, es *ExschoolStudent) (error)
 	Delete(ctx context.Context, id int64) (error)
 }
