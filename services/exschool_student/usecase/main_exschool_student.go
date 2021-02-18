@@ -74,6 +74,16 @@ func (u *usecase) Store(c context.Context, exs *domain.ExschoolStudent) (err err
 	ctx, cancel := context.WithTimeout(c, u.ctxTimeout)
 	defer cancel()
 
+	find, err := u.exsRepo.GetByExschoolAndStudent(ctx, exs.Exschool.ID, exs.Student.ID)
+	if err != nil {
+		return u.getError(err)
+	}
+
+	if find != (domain.ExschoolStudent{}) {
+		exs.ID = find.ID
+		return
+	}
+
 	ex, err := u.exRepo.GetByID(ctx, exs.Exschool.ID)
 	if err != nil {
 		return u.getError(err)
