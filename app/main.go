@@ -39,6 +39,8 @@ import (
     _classroomSubjectPlanResultUsecase "github.com/shellrean/extraordinary-raport/services/classroom_subject_plan_result/usecase"
     _exschoolRepo "github.com/shellrean/extraordinary-raport/services/exschool/repository/postgres"
     _exschoolUsecase "github.com/shellrean/extraordinary-raport/services/exschool/usecase"
+    _exschoolStudentRepo "github.com/shellrean/extraordinary-raport/services/exschool_student/repository/postgres"
+    _exschoolStudentUsecase "github.com/shellrean/extraordinary-raport/services/exschool_student/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     academicHandler "github.com/shellrean/extraordinary-raport/services/academic/interface/http"
     majorHandler "github.com/shellrean/extraordinary-raport/services/major/interface/http"
@@ -53,6 +55,7 @@ import (
     subjectHandler "github.com/shellrean/extraordinary-raport/services/subject/interface/http"
     userHandler "github.com/shellrean/extraordinary-raport/services/user/interface/http"
     exschoolHandler "github.com/shellrean/extraordinary-raport/services/exschool/interface/http"
+    exschoolStudentHandler "github.com/shellrean/extraordinary-raport/services/exschool_student/interface/http"
 )
 
 func main() {
@@ -189,6 +192,15 @@ func main() {
     exschoolRepo := _exschoolRepo.New(db)
     exschoolUsecase := _exschoolUsecase.New(exschoolRepo, timeoutContext, cfg)
 
+    exschoolStudentRepo := _exschoolStudentRepo.New(db)
+    exschoolStudentUsecase := _exschoolStudentUsecase.New(
+        exschoolStudentRepo,
+        exschoolRepo,
+        classroomStudentRepo,
+        timeoutContext,
+        cfg,
+    )
+
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
     }
@@ -212,6 +224,7 @@ func main() {
     classroomSubjectPlanHandler.New(r, classroomSubjectPlanUsecase, cfg, mddl)
     classroomSubjectPlanResultHandler.New(r, classroomSubjectPlanResultUsecase, cfg, mddl)
     exschoolHandler.New(r, exschoolUsecase, cfg, mddl)
+    exschoolStudentHandler.New(r, exschoolStudentUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
