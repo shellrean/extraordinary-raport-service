@@ -52,6 +52,7 @@ var errorCodeToResponseCode = map[error]int {
 	domain.ErrStudentNotFound:	http.StatusNotFound,
 	domain.ErrAcademicNotFound:	http.StatusNotFound,
 	domain.ErrSubjectPlanNotFound: http.StatusNotFound,
+	domain.ErrExschoolNotFound:	http.StatusNotFound,
 	domain.ErrAcademicYearExist: http.StatusBadRequest,
 	domain.ErrClassroomAcademicExist: http.StatusBadRequest,
 	domain.ErrClassroomStudentExist: http.StatusBadRequest,
