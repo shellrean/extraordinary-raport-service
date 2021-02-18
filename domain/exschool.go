@@ -13,10 +13,13 @@ type Exschool struct {
 }
 
 type ExschoolRepository interface {
-	Fetch(ctx context.Context, cursor int64, num int64) ([]Exschool, error)
+	Fetch(ctx context.Context) ([]Exschool, error)
 	GetByID(ctx context.Context, id int64) (Exschool, error)
+	Store(ctx context.Context, ex *Exschool) (error)
 }
 
 type ExschoolUsecase interface {
-	Fetch(ctx context.Context, cursor string, num int64) ([]Exschool, error)
+	Fetch(ctx context.Context) ([]Exschool, error)
+	GetByID(ctx context.Context, id int64) (Exschool, error)
+	Store(ctx context.Context, ex *Exschool) (error)
 }
