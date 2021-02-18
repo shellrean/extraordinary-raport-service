@@ -89,6 +89,28 @@ func (m *repository) GetByID(ctx context.Context, id int64) (res domain.Exschool
     return
 }
 
+func (m *repository) GetByExschoolAndStudent(ctx context.Context, exID, sID int64) (res domain.ExschoolStudent, err error) {
+	query := `
+	SELECT
+		exs.id,
+		exs.exschool_id,
+		exs.student_id,
+		exs.created_at,
+		exs.updated_at
+	FROM exschool_students exs 
+	WHERE exs.exschool_id=$1 AND exs.student_id=$2`
+
+	list, err := m.fetch(ctx, query, exID, sID)
+    if err != nil {
+        return domain.ExschoolStudent{}, err
+    }
+    if len(list) < 1 {
+        return domain.ExschoolStudent{}, err
+    }
+    res = list[0]
+    return
+}
+
 func (m *repository) Store(ctx context.Context, exs *domain.ExschoolStudent) (err error) {
 	query := `INSERT INTO exschool_students (exschool_id, student_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4) RETURNING id`
