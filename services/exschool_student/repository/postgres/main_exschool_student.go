@@ -53,12 +53,12 @@ func (m *repository) FetchByClassroom(ctx context.Context, cID int64) (res []dom
 		exs.id,
 		exs.exschool_id,
 		exs.student_id,
-		exs.crated_at,
+		exs.created_at,
 		exs.updated_at
-	FROM exschool_students
+	FROM exschool_students exs
 	INNER JOIN classroom_students cs
 		ON cs.id=exs.student_id
-	WHERE exs.classroom_id=$1`
+	WHERE cs.classroom_academic_id=$1`
 
 	res, err = m.fetch(ctx, query, cID)
 	if err != nil {
@@ -73,8 +73,9 @@ func (m *repository) GetByID(ctx context.Context, id int64) (res domain.Exschool
 		exs.id,
 		exs.exschool_id,
 		exs.student_id,
-		exs.crated_at,
+		exs.created_at,
 		exs.updated_at
+	FROM exschool_students exs 
 	WHERE exs.id=$1`
 
 	list, err := m.fetch(ctx, query, id)

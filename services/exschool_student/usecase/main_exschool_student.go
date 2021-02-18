@@ -13,15 +13,17 @@ type usecase struct {
 	exsRepo 		domain.ExschoolStudentRepository
 	exRepo 			domain.ExschoolRepository
 	csRepo 			domain.ClassroomStudentRepository
+	cRepo 			domain.ClassroomAcademicRepository
 	ctxTimeout 		time.Duration
 	cfg 			*config.Config
 }
 
-func New(m domain.ExschoolStudentRepository, m2 domain.ExschoolRepository, m3 domain.ClassroomStudentRepository, timeout time.Duration, cfg *config.Config) domain.ExschoolStudentUsecase{
+func New(m domain.ExschoolStudentRepository, m2 domain.ExschoolRepository, m3 domain.ClassroomStudentRepository, m4 domain.ClassroomAcademicRepository, timeout time.Duration, cfg *config.Config) domain.ExschoolStudentUsecase{
 	return &usecase {
 		exsRepo:	 m,
 		exRepo:		 m2,
 		csRepo:		 m3,
+		cRepo:		 m4,
 		ctxTimeout:  timeout,
 		cfg:		 cfg,
 	}
@@ -39,13 +41,13 @@ func (u *usecase) FetchByClassroom(c context.Context, id int64) (res []domain.Ex
 	ctx, cancel := context.WithTimeout(c, u.ctxTimeout)
 	defer cancel()
 
-	ex, err := u.exRepo.GetByID(ctx, id)
+	cr, err := u.cRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, u.getError(err)
 	}
 
-	if ex == (domain.Exschool{}) {
-		return nil, domain.ErrExschoolNotFound
+	if cr == (domain.ClassroomAcademic{}) {
+		return nil, domain.ErrClassroomAcademicNotFound
 	}
 
 	res, err = u.exsRepo.FetchByClassroom(ctx, id)

@@ -36,7 +36,7 @@ func New(r *gin.Engine, m domain.ExschoolStudentUsecase, cfg *config.Config, mdd
 	exs.POST("exschool-student", h.Store)
 	exs.DELETE("exschool-student/:id", h.Delete)
 
-	exs.GET("/classrooms/:id", h.FetchByClassroom)
+	exs.GET("/classroom/:id", h.FetchByClassroom)
 }
 
 func (h *handler) Fetch(c *gin.Context) {

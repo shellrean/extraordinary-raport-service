@@ -197,6 +197,7 @@ func main() {
         exschoolStudentRepo,
         exschoolRepo,
         classroomStudentRepo,
+        classroomAcademicRepo,
         timeoutContext,
         cfg,
     )
