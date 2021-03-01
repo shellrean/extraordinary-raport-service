@@ -41,6 +41,8 @@ import (
     _exschoolUsecase "github.com/shellrean/extraordinary-raport/services/exschool/usecase"
     _exschoolStudentRepo "github.com/shellrean/extraordinary-raport/services/exschool_student/repository/postgres"
     _exschoolStudentUsecase "github.com/shellrean/extraordinary-raport/services/exschool_student/usecase"
+    _studentNoteRepo "github.com/shellrean/extraordinary-raport/services/student_note/repository/postgres"
+    _studentNoteUsecase "github.com/shellrean/extraordinary-raport/services/student_note/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     academicHandler "github.com/shellrean/extraordinary-raport/services/academic/interface/http"
     majorHandler "github.com/shellrean/extraordinary-raport/services/major/interface/http"
@@ -56,6 +58,7 @@ import (
     userHandler "github.com/shellrean/extraordinary-raport/services/user/interface/http"
     exschoolHandler "github.com/shellrean/extraordinary-raport/services/exschool/interface/http"
     exschoolStudentHandler "github.com/shellrean/extraordinary-raport/services/exschool_student/interface/http"
+    studentNoteHandler "github.com/shellrean/extraordinary-raport/services/student_note/interface/http"
 )
 
 func main() {
@@ -202,6 +205,15 @@ func main() {
         cfg,
     )
 
+    studentNoteRepo := _studentNoteRepo.New(db)
+    studentNoteUsecase := _studentNoteUsecase.New(
+        studentNoteRepo,
+        classroomStudentRepo,
+        userRepo,
+        timeoutContext,
+        cfg,
+    )
+
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
     }
@@ -226,6 +238,7 @@ func main() {
     classroomSubjectPlanResultHandler.New(r, classroomSubjectPlanResultUsecase, cfg, mddl)
     exschoolHandler.New(r, exschoolUsecase, cfg, mddl)
     exschoolStudentHandler.New(r, exschoolStudentUsecase, cfg, mddl)
+    studentNoteHandler.New(r, studentNoteUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
