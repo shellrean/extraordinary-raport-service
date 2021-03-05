@@ -41,6 +41,23 @@ func (u *usecase) getError(err error) (error) {
     return err
 }
 
+func (u *usecase) FetchByClassroom(c context.Context, id int64, typ int64) (res []domain.StudentNote, err error) {
+	ctx, cancel := context.WithTimeout(c, u.timeout)
+	defer cancel()
+	
+	if typ == 0 {
+		res, err = u.snRepo.FetchByClassroom(ctx, id)
+	} else {
+		res, err = u.snRepo.FetchByTypeAndClassroom(ctx, id, typ)
+	}
+
+	if err != nil {
+		return nil, u.getError(err)
+	}
+	
+	return
+}
+
 func (u *usecase) Store(c context.Context, sn *domain.StudentNote) (err error) {
 	ctx, cancel := context.WithTimeout(c, u.timeout)
 	defer cancel()
@@ -86,10 +103,23 @@ func (u *usecase) Store(c context.Context, sn *domain.StudentNote) (err error) {
 		return domain.ErrNoteTypeNotFound
 	}
 
-	sn.CreatedAt = time.Now()
-	sn.UpdatedAt = time.Now()
+	var sne domain.StudentNote
+	
+	if sn.Type > 1 {
+		sne, err = u.snRepo.GetByStudentAndType(ctx, sn.Student.ID, sn.Type)
+	}
 
-	err = u.snRepo.Store(ctx, sn)
+	if sne != (domain.StudentNote{}) {
+		sn.ID = sne.ID
+		sn.UpdatedAt = time.Now()
+		err = u.snRepo.Update(ctx, sn)
+	} else {
+		sn.CreatedAt = time.Now()
+		sn.UpdatedAt = time.Now()
+	
+		err = u.snRepo.Store(ctx, sn)
+	}
+
 	if err != nil {
 		return u.getError(err)
 	}

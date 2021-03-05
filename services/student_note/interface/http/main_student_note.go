@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"strings"
+	"strconv"
 	
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -31,7 +32,59 @@ func New(r *gin.Engine, m domain.StudentNoteUsecase, cfg *config.Config, mddl *m
 	sn := r.Group("/student-notes")
 	sn.Use(h.mddl.Auth())
 
-	sn.POST("student-note", h.Store)
+	sn.POST("student-note",h.mddl.MustRole([]int{domain.RoleTeacher}), h.Store)
+	sn.GET("classroom/:id", h.mddl.MustRole([]int{domain.RoleTeacher}), h.FetchByClassroom)
+}
+
+func (h *handler) FetchByClassroom(c *gin.Context) {
+	idS := c.Param("id")
+    id, err := strconv.Atoi(idS)
+    if err != nil {
+        err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+        c.JSON(
+            http.StatusBadRequest,
+            api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+        )
+        return
+	}
+
+	typ := c.Query("type")
+	var typID int64
+	if typ != "" {
+		typID, err = strconv.ParseInt(typ, 10, 64)
+		if err != nil {
+			err_code := helper.GetErrorCode(domain.ErrBadParamInput)
+			c.JSON(
+				http.StatusBadRequest,
+				api.ResponseError(domain.ErrBadParamInput.Error(), err_code),
+			)
+			return
+		}
+	}
+
+	res, err := h.snUsecase.FetchByClassroom(c, int64(id), typID)
+	if err != nil {
+		err_code := helper.GetErrorCode(err)
+        c.JSON(
+            api.GetHttpStatusCode(err),
+            api.ResponseError(err.Error(), err_code),
+        )
+        return
+	}
+
+	var data []dto.StudentNoteResponse
+	for _, item := range res {
+		snr := dto.StudentNoteResponse{
+			ID: 		item.ID,
+			Type:		item.Type,
+			StudentID:	item.Student.ID,
+			TeacherID:	item.Teacher.ID,
+			Note:		item.Note,
+		}
+		data = append(data, snr)
+	}
+
+	c.JSON(http.StatusOK, api.ResponseSuccess("success", data))
 }
 
 func (h *handler) Store(c *gin.Context) {
@@ -65,6 +118,8 @@ func (h *handler) Store(c *gin.Context) {
         )
         return
 	}
+    currentUserID := c.GetInt64("user_id")
+    u.TeacherID = currentUserID
 	
 	sn := domain.StudentNote {
 		Type:		u.Type,
@@ -76,7 +131,6 @@ func (h *handler) Store(c *gin.Context) {
 		},
 		Note:		u.Note,
 	}
-
 	err := h.snUsecase.Store(c, &sn)
 	if err != nil {
 		err_code := helper.GetErrorCode(err)

@@ -28,8 +28,13 @@ type StudentNote struct {
 
 type StudentNoteRepository interface {
 	Store(ctx context.Context, sn *StudentNote) (error)
+	FetchByClassroom(ctx context.Context, id int64) ([]StudentNote, error)
+	FetchByTypeAndClassroom(ctx context.Context, id int64, typ int64) ([]StudentNote, error)
+	GetByStudentAndType(ctx context.Context, id int64, typ int) (StudentNote, error)
+	Update(ctx context.Context, sn *StudentNote) (error)
 }
 
 type StudentNoteUsecase interface {
 	Store(ctx context.Context, sn *StudentNote) (error)
+	FetchByClassroom(ctx context.Context, id int64, typ int64) ([]StudentNote, error)
 }
