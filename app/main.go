@@ -43,6 +43,8 @@ import (
     _exschoolStudentUsecase "github.com/shellrean/extraordinary-raport/services/exschool_student/usecase"
     _studentNoteRepo "github.com/shellrean/extraordinary-raport/services/student_note/repository/postgres"
     _studentNoteUsecase "github.com/shellrean/extraordinary-raport/services/student_note/usecase"
+    _attendanceRepo "github.com/shellrean/extraordinary-raport/services/attendance/repository/postgres"
+    _attendanceUsecase "github.com/shellrean/extraordinary-raport/services/attendance/usecase"
     _middleware "github.com/shellrean/extraordinary-raport/interface/http/middleware"
     academicHandler "github.com/shellrean/extraordinary-raport/services/academic/interface/http"
     majorHandler "github.com/shellrean/extraordinary-raport/services/major/interface/http"
@@ -59,6 +61,7 @@ import (
     exschoolHandler "github.com/shellrean/extraordinary-raport/services/exschool/interface/http"
     exschoolStudentHandler "github.com/shellrean/extraordinary-raport/services/exschool_student/interface/http"
     studentNoteHandler "github.com/shellrean/extraordinary-raport/services/student_note/interface/http"
+    attendanceHandler "github.com/shellrean/extraordinary-raport/services/attendance/interface/http"
 )
 
 func main() {
@@ -214,6 +217,14 @@ func main() {
         cfg,
     )
 
+    attendanceRepo := _attendanceRepo.New(db)
+    attendanceUsecase := _attendanceUsecase.New(
+        attendanceRepo,
+        classroomStudentRepo,
+        timeoutContext,
+        cfg,
+    )
+
     if cfg.Release == true {
         gin.SetMode(gin.ReleaseMode)
     }
@@ -239,6 +250,7 @@ func main() {
     exschoolHandler.New(r, exschoolUsecase, cfg, mddl)
     exschoolStudentHandler.New(r, exschoolStudentUsecase, cfg, mddl)
     studentNoteHandler.New(r, studentNoteUsecase, cfg, mddl)
+    attendanceHandler.New(r, attendanceUsecase, cfg, mddl)
 
     // Let's run our extraordinary-raport server
     fmt.Printf("Extraordinary-raport serve on %s:%s\n", cfg.Server.Host, cfg.Server.Port)
